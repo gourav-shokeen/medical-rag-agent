@@ -1,0 +1,37 @@
+[project]
+name = "rag-finance"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "beautifulsoup4>=4.14.3",
+    "chromadb>=1.5.9",
+    "langchain>=0.3,<1.0",
+    "langchain-chroma<1.0",
+    "langchain-community>=0.3,<1.0",
+    "langchain-core>=0.3.86",
+    "langchain-ollama<1.0",
+    "langchain-text-splitters>=0.3,<1.0",
+    "pypdf>=6.12.2",
+    "python-dotenv>=1.2.2",
+    "rank-bm25>=0.2.2",
+    "sec-edgar-downloader>=5.1.0",
+    "sentence-transformers>=5.5.1",
+    "torch>=2.12.0",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.2.0",
+    "jupyterlab>=4.5.7",
+]
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cu126", marker = "sys_platform == 'win32' or sys_platform == 'linux'" },
+]
