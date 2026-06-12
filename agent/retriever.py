@@ -91,17 +91,24 @@ def get_retriever():
     if _retriever is not None:
         return _retriever
 
-    embeddings = OllamaEmbeddings(model=EMBEDDING_MODEL)
     if CORPUS == "medical":
-        if not MEDICAL_CHROMA_DIR.exists():
+        # RETRIEVER selects the bi-encoder + its index (general nomic vs MedCPT);
+        # queries MUST use the same embedder the index was built with, or vectors
+        # mismatch. Everything downstream (reranker, k) is identical -> clean ablation.
+        from agent.config import RETRIEVER, medical_index
+        from agent.embeddings import get_medical_embeddings
+
+        med_dir, med_collection = medical_index(RETRIEVER)
+        if not med_dir.exists():
             raise FileNotFoundError(
-                f"Medical index not found at {MEDICAL_CHROMA_DIR}. "
-                "Run: python ingest/build_medical_index.py"
+                f"Medical index not found at {med_dir} (RETRIEVER={RETRIEVER}). "
+                "Run: python ingest/build_index_fast.py"
+                + (" --embedder medcpt" if RETRIEVER == "medcpt" else "")
             )
         vectorstore = Chroma(
-            collection_name=MEDICAL_COLLECTION,
-            persist_directory=str(MEDICAL_CHROMA_DIR),
-            embedding_function=embeddings,
+            collection_name=med_collection,
+            persist_directory=str(med_dir),
+            embedding_function=get_medical_embeddings(RETRIEVER),
         )
         _retriever = MedicalRetriever(vectorstore, _build_reranker(), k=20)
     else:
@@ -112,7 +119,7 @@ def get_retriever():
             )
         vectorstore = Chroma(
             persist_directory=str(FINANCE_CHROMA_DIR),
-            embedding_function=embeddings,
+            embedding_function=OllamaEmbeddings(model=EMBEDDING_MODEL),
         )
         _retriever = SmartRetriever(vectorstore, _build_reranker(), k=20)
     return _retriever

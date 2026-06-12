@@ -23,9 +23,71 @@ import sys
 import time
 from pathlib import Path
 
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # cp1252 console + medical text
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from agent.config import EMBEDDING_MODEL, MEDICAL_CHROMA_DIR, MEDICAL_COLLECTION
+
+
+def get_vectorstore(retriever=None):
+    """Shared medical Chroma handle for the active (or given) retriever kind."""
+    from langchain_chroma import Chroma
+
+    from agent.config import medical_index
+    from agent.embeddings import get_medical_embeddings
+
+    med_dir, med_collection = medical_index(retriever)
+    return Chroma(
+        collection_name=med_collection,
+        persist_directory=str(med_dir),
+        embedding_function=get_medical_embeddings(retriever),
+    )
+
+
+def batched_add(vectorstore, records, *, batch_size=128, total=None, skip_ids=None,
+                label="ingest"):
+    """Stream `records` (dicts: id/text/metadata) into Chroma in batches.
+
+    RAM-light (consumes an iterator, never materializes everything), resumable
+    (skip_ids are not re-embedded), idempotent (ids are deterministic upserts).
+    Prints throughput + ETA. Returns the number of records added.
+    """
+    skip = skip_ids or set()
+    added = 0
+    batch = []
+    t0 = time.perf_counter()
+
+    def flush():
+        nonlocal added
+        if not batch:
+            return
+        vectorstore.add_texts(
+            texts=[r["text"] for r in batch],
+            metadatas=[r["metadata"] for r in batch],
+            ids=[r["id"] for r in batch],
+        )
+        added += len(batch)
+        batch.clear()
+
+    for rec in records:
+        if rec["id"] in skip:
+            continue
+        batch.append(rec)
+        if len(batch) >= batch_size:
+            flush()
+            if (added // batch_size) % 10 == 0:
+                elapsed = time.perf_counter() - t0
+                rate = added / elapsed if elapsed else 0
+                eta = (total - added) / rate / 60 if (total and rate) else 0
+                tot = f"/{total:,}" if total else ""
+                print(
+                    f"  [{label}] {added:>7,}{tot} ({rate:,.0f}/s, ETA {eta:,.1f} min)",
+                    flush=True,
+                )
+    flush()
+    print(f"  [{label}] added {added:,} in {(time.perf_counter() - t0) / 60:.1f} min")
+    return added
 
 
 def iter_textbooks():
@@ -47,22 +109,28 @@ def iter_textbooks():
         }
 
 
-def iter_statpearls(chunk_dir: Path):
-    for fp in sorted(chunk_dir.glob("*.jsonl")):
-        for line in fp.read_text(encoding="utf-8").splitlines():
-            if not line.strip():
-                continue
-            row = json.loads(line)
-            text = row.get("contents") or f"{row.get('title', '')}. {row.get('content', '')}"
-            yield {
-                "id": f"statpearls-{row['id']}",
-                "text": text,
-                "metadata": {
-                    "source": "statpearls",
-                    "title": row.get("title", "StatPearls"),
-                    "snippet_id": row["id"],
-                },
-            }
+def read_statpearls_file(fp: Path):
+    """Yield ingest records from one StatPearls chunk JSONL file."""
+    for line in fp.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        row = json.loads(line)
+        text = row.get("contents") or f"{row.get('title', '')}. {row.get('content', '')}"
+        yield {
+            "id": f"statpearls-{row['id']}",
+            "text": text,
+            "metadata": {
+                "source": "statpearls",
+                "title": row.get("title", "StatPearls"),
+                "snippet_id": row["id"],
+            },
+        }
+
+
+def iter_statpearls(chunk_dir: Path, files=None):
+    """Stream StatPearls records. `files` overrides/ orders the file list."""
+    for fp in (files if files is not None else sorted(chunk_dir.glob("*.jsonl"))):
+        yield from read_statpearls_file(fp)
 
 
 def main():

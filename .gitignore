@@ -12,6 +12,7 @@ data/
 chroma_db/
 chroma_med/
 chroma_med_test/
+corpus/
 .venv/
 .env
 __pycache__/

@@ -5,12 +5,17 @@ Lines starting with // are comments. Each remaining line is one JSON object:
 """
 
 import json
+import os
 from pathlib import Path
 from typing import List, Optional
 
-GOLDEN_PATH = Path(__file__).resolve().parent / "golden" / "golden.jsonl"
+# default finance set; override with GOLDEN_PATH env (e.g. golden_medical.jsonl)
+GOLDEN_PATH = Path(
+    os.getenv("GOLDEN_PATH", Path(__file__).resolve().parent / "golden" / "golden.jsonl")
+)
 
-REQUIRED_KEYS = {"id", "question", "ground_truth", "company", "type", "smoke"}
+# `company` is finance-only and optional (medical rows omit it)
+REQUIRED_KEYS = {"id", "question", "ground_truth", "type", "smoke"}
 VALID_TYPES = {"factual", "synthesis", "unanswerable"}
 
 
