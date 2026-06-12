@@ -17,9 +17,14 @@ DEFAULT_OLLAMA_MODEL = "llama3.1:8b"
 VALID_PROVIDERS = ("ollama", "groq")
 
 
-def get_llm(temperature: float = 0):
-    """Return the chat model selected by LLM_PROVIDER."""
-    provider = os.getenv("LLM_PROVIDER", "").strip().lower()
+def get_llm(temperature: float = 0, provider: str | None = None):
+    """Return the chat model selected by LLM_PROVIDER (or the explicit override).
+
+    The `provider` argument exists so callers with a FIXED provider requirement
+    (e.g. the eval judge, which must always be Groq) don't silently follow the
+    agent's LLM_PROVIDER setting.
+    """
+    provider = (provider or os.getenv("LLM_PROVIDER", "")).strip().lower()
     if provider not in VALID_PROVIDERS:
         raise ValueError(
             f"LLM_PROVIDER must be one of {VALID_PROVIDERS}, got {provider!r}. "

@@ -1,0 +1,12 @@
+.git
+.venv
+.env
+data/
+docs/
+evals/results/
+frontend/
+node_modules
+__pycache__
+*.ipynb
+.ipynb_checkpoints
+uv.lock

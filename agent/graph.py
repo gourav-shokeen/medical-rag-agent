@@ -23,6 +23,13 @@ logger = logging.getLogger(__name__)
 
 REFUSAL = "This information is not available in the filings."
 
+# small models paraphrase the refusal ("...in the passages/documents"); normalize
+# near-misses so downstream exact-match logic (citations, grading) stays correct
+_REFUSAL_PATTERN = re.compile(
+    r"information is not available in the (filings|passages|context|documents|provided)",
+    re.IGNORECASE,
+)
+
 # Passage text per doc handed to the graders (keeps grading prompts small).
 _GRADE_DOC_CHARS = 1200
 
@@ -156,7 +163,9 @@ def generate(state: AgentState) -> dict:
         "when the passages contain the requested figures or facts, answer concisely "
         "with them instead of refusing. Passages are excerpts and may come from any "
         "section of a filing; judge them by their content, not by whether they name "
-        "a particular section."
+        "a particular section. If the passages cover the question's topic but do not "
+        "mention a specific name or term used in the question, do not refuse — "
+        "answer with what the passages do state about that topic."
     )
     # answer the user's original question; the rewritten one only steered retrieval
     question = state.get("original_question") or state["question"]
@@ -165,6 +174,8 @@ def generate(state: AgentState) -> dict:
         human += f"\n(Clarified form used for retrieval: {state['question']})"
     response = get_llm().invoke([("system", system), ("human", human)])
     generation = response.content.strip()
+    if _REFUSAL_PATTERN.search(generation) and len(generation) < 200:
+        generation = REFUSAL  # length guard: don't clobber real answers
     return {
         "generation": generation,
         "citations": _extract_citations(generation, state["documents"]),
@@ -247,8 +258,12 @@ app = build_graph()
 
 
 def run_agent(question: str) -> dict:
+    from langchain_core.callbacks import UsageMetadataCallbackHandler
+
     handler, trace_url, client = get_langfuse()
-    config = {"callbacks": [handler]} if handler else {}
+    usage_handler = UsageMetadataCallbackHandler()
+    callbacks = [usage_handler] + ([handler] if handler else [])
+    config = {"callbacks": callbacks}
 
     initial: AgentState = {
         "question": question,
@@ -271,6 +286,12 @@ def run_agent(question: str) -> dict:
             client.flush()  # OTEL batching: ship spans before process exit
     latency_ms = round((time.perf_counter() - start) * 1000, 1)
 
+    # sum usage across every LLM call in the run (route/grade/rewrite/generate)
+    usage = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+    for per_model in usage_handler.usage_metadata.values():
+        for k in usage:
+            usage[k] += per_model.get(k, 0)
+
     result = {
         "answer": final["generation"],
         "citations": final["citations"],
@@ -278,6 +299,9 @@ def run_agent(question: str) -> dict:
         "retries": final["retries"],
         "grounded": final["grounded"],
         "latency_ms": latency_ms,
+        # final top-5 passages the answer was generated from (for RAGAS/DeepEval)
+        "contexts": [d.page_content for d in final["documents"]],
+        "usage": usage,
     }
     if trace_url:
         result["trace_url"] = trace_url

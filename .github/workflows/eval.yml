@@ -1,0 +1,55 @@
+name: eval-gate
+
+on:
+  pull_request:
+
+jobs:
+  smoke-evals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies (CPU torch — no CUDA in CI)
+        run: |
+          uv venv
+          UV_TORCH_BACKEND=cpu uv pip install \
+            langgraph==1.0.1 "langchain>=0.3,<1.0" "langchain-core>=0.3.86" \
+            "langchain-community>=0.3,<1.0" langchain-groq==0.3.8 \
+            "langchain-ollama<1.0" langchain-huggingface==0.3.1 \
+            "langchain-chroma<1.0" "chromadb>=1.5.9" langfuse==4.7.1 \
+            pydantic==2.13.4 "python-dotenv>=1.2.2" "sentence-transformers>=5.5.1" \
+            ragas==0.4.3 deepeval==4.0.6 pytest==9.0.3
+
+      # NOTE: the smoke gate needs the persisted chroma_db/ index and a local
+      # query embedder. chroma_db is not in git (too large); restore it from a
+      # release artifact or LFS before this step, or the run will be skipped.
+      - name: Check index present
+        id: index
+        run: |
+          if [ -d chroma_db ]; then echo "present=true" >> "$GITHUB_OUTPUT"; \
+          else echo "present=false" >> "$GITHUB_OUTPUT"; echo "chroma_db/ missing — smoke evals skipped"; fi
+
+      # Query embeddings use local Ollama nomic-embed-text (the index was built
+      # with it — a different embedder would be dimension-incompatible).
+      - name: Start Ollama + pull embedding model
+        if: steps.index.outputs.present == 'true'
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          ollama serve &
+          sleep 5
+          ollama pull nomic-embed-text
+
+      - name: Run smoke evals (Groq judge + Groq agent)
+        if: steps.index.outputs.present == 'true'
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          LLM_PROVIDER: groq
+          JUDGE_PROVIDER: groq
+          DEEPEVAL_TELEMETRY_OPT_OUT: "YES"
+        run: uv run pytest evals/test_quality.py -x -q

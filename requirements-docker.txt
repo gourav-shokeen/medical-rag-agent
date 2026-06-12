@@ -1,0 +1,16 @@
+# Runtime-only deps for the API image, pinned to the versions in uv.lock.
+# torch is installed separately in the Dockerfile from the CPU wheel index.
+fastapi==0.136.3
+uvicorn==0.48.0
+langgraph==1.0.1
+langchain>=0.3,<1.0
+langchain-core>=0.3.86
+langchain-community>=0.3,<1.0
+langchain-chroma<1.0
+langchain-ollama<1.0
+langchain-groq==0.3.8
+langfuse==4.7.1
+chromadb>=1.5.9
+sentence-transformers>=5.5.1
+pydantic==2.13.4
+python-dotenv>=1.2.2

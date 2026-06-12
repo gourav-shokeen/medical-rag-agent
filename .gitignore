@@ -15,3 +15,14 @@ chroma_db/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+
+# eval artifacts
+evals/results/
+.deepeval/
+.deepeval_telemetry.txt
+deepeval-cache.json
+temp_test_run_data.json
+
+# frontend
+node_modules/
+.next/

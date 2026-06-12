@@ -7,6 +7,8 @@ requires-python = ">=3.12"
 dependencies = [
     "beautifulsoup4>=4.14.3",
     "chromadb>=1.5.9",
+    "deepeval==4.0.6",
+    "fastapi==0.136.3",
     "langchain>=0.3,<1.0",
     "langchain-chroma<1.0",
     "langchain-community>=0.3,<1.0",
@@ -19,12 +21,19 @@ dependencies = [
     "langgraph==1.0.1",
     "pydantic==2.13.4",
     "pypdf>=6.12.2",
+    "pytest==9.0.3",
     "python-dotenv>=1.2.2",
+    "ragas==0.4.3",
     "rank-bm25>=0.2.2",
     "sec-edgar-downloader>=5.1.0",
     "sentence-transformers>=5.5.1",
     "torch>=2.12.0",
+    "uvicorn==0.48.0",
 ]
+
+[project.optional-dependencies]
+# fallback UI only (app/gradio_app.py): uv sync --extra ui
+ui = ["gradio>=5,<6"]
 
 [dependency-groups]
 dev = [
