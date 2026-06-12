@@ -37,16 +37,21 @@ export default function Home() {
 
   return (
     <main>
-      <h1>10-K Analyst Agent</h1>
+      <h1>Medical Reference Agent</h1>
       <p className="subtitle">
-        Self-correcting RAG over SEC 10-K filings — Apple, Microsoft, NVIDIA.
+        Self-correcting RAG over published medical textbooks &amp; clinical references.
       </p>
+
+      <div className="disclaimer">
+        Educational summaries from published medical references — not medical advice.
+        For personal symptoms, consult a clinician (or seek emergency care if urgent).
+      </div>
 
       <form onSubmit={ask}>
         <input
           type="text"
           value={question}
-          placeholder="e.g. What was Apple's total net sales in fiscal 2023?"
+          placeholder="e.g. What is the first-line management of community-acquired pneumonia?"
           onChange={(e) => setQuestion(e.target.value)}
         />
         <button type="submit" disabled={loading || !question.trim()}>

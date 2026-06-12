@@ -1,19 +1,29 @@
-"""Existing SmartRetriever, extracted verbatim from rag.ipynb so the agent can import it.
+"""SmartRetriever over the active corpus (CORPUS env), extracted from rag.ipynb.
 
-Reuses the persisted Chroma index in chroma_db/ (nomic-embed-text embeddings) and the
-same ms-marco cross-encoder reranker. No re-chunking or re-indexing happens here.
-Pipeline: company detection -> metadata filter -> vector top-k 20 -> rerank top-5.
+Reuses a persisted Chroma index (nomic-embed-text embeddings) + the same ms-marco
+cross-encoder reranker. No re-chunking/re-indexing here.
+
+- finance: company detection -> per-company metadata filter -> top-20 -> rerank top-5
+- medical: NO company logic; vector top-20 -> rerank top-5, optional `source` filter
+
+Return type (both): list[langchain_core.documents.Document] with .page_content +
+.metadata (finance: company/source/file; medical: source/title/snippet_id).
 """
-
-from pathlib import Path
 
 from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langchain_chroma import Chroma
 from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 from langchain_ollama import OllamaEmbeddings
 
-CHROMA_DIR = Path(__file__).resolve().parent.parent / "chroma_db"
+from agent.config import (
+    CORPUS,
+    EMBEDDING_MODEL,
+    FINANCE_CHROMA_DIR,
+    MEDICAL_CHROMA_DIR,
+    MEDICAL_COLLECTION,
+)
 
+# kept module-level for backwards-compat (finance domain + tests import this)
 COMPANY_ALIASES = {
     "AAPL": ["apple", "aapl"],
     "MSFT": ["microsoft", "msft", "azure"],
@@ -27,12 +37,14 @@ def detect_companies(q):
 
 
 class SmartRetriever:
+    """Finance corpus: company-aware retrieval (original behavior, unchanged)."""
+
     def __init__(self, vectorstore, reranker, k=20):
         self.vectorstore = vectorstore
         self.reranker = reranker
         self.k = k
 
-    def invoke(self, query):
+    def invoke(self, query, source=None):  # source ignored (finance has no source filter)
         companies = detect_companies(query)
         if len(companies) == 0:
             candidates = self.vectorstore.as_retriever(
@@ -49,26 +61,63 @@ class SmartRetriever:
         return self.reranker.compress_documents(candidates, query)
 
 
-_smart_retriever = None
+class MedicalRetriever:
+    """Medical corpus: plain vector top-k -> rerank, optional `source` filter."""
+
+    def __init__(self, vectorstore, reranker, k=20):
+        self.vectorstore = vectorstore
+        self.reranker = reranker
+        self.k = k
+
+    def invoke(self, query, source=None):
+        kwargs = {"k": self.k}
+        if source:
+            kwargs["filter"] = {"source": source}
+        candidates = self.vectorstore.as_retriever(search_kwargs=kwargs).invoke(query)
+        return self.reranker.compress_documents(candidates, query)
 
 
-def get_smart_retriever() -> SmartRetriever:
-    """Lazy singleton: loading the cross-encoder and Chroma once per process."""
-    global _smart_retriever
-    if _smart_retriever is None:
-        if not CHROMA_DIR.exists():
+_retriever = None
+
+
+def _build_reranker():
+    cross_encoder = HuggingFaceCrossEncoder(model_name="cross-encoder/ms-marco-MiniLM-L-6-v2")
+    return CrossEncoderReranker(model=cross_encoder, top_n=5)
+
+
+def get_retriever():
+    """Lazy singleton for the active corpus (loads cross-encoder + Chroma once)."""
+    global _retriever
+    if _retriever is not None:
+        return _retriever
+
+    embeddings = OllamaEmbeddings(model=EMBEDDING_MODEL)
+    if CORPUS == "medical":
+        if not MEDICAL_CHROMA_DIR.exists():
             raise FileNotFoundError(
-                f"Persisted Chroma index not found at {CHROMA_DIR}. "
-                "Run the indexing cells in rag.ipynb first."
+                f"Medical index not found at {MEDICAL_CHROMA_DIR}. "
+                "Run: python ingest/build_medical_index.py"
             )
-        embeddings = OllamaEmbeddings(model="nomic-embed-text")
         vectorstore = Chroma(
-            persist_directory=str(CHROMA_DIR),
+            collection_name=MEDICAL_COLLECTION,
+            persist_directory=str(MEDICAL_CHROMA_DIR),
             embedding_function=embeddings,
         )
-        cross_encoder = HuggingFaceCrossEncoder(
-            model_name="cross-encoder/ms-marco-MiniLM-L-6-v2"
+        _retriever = MedicalRetriever(vectorstore, _build_reranker(), k=20)
+    else:
+        if not FINANCE_CHROMA_DIR.exists():
+            raise FileNotFoundError(
+                f"Finance index not found at {FINANCE_CHROMA_DIR}. "
+                "Run the indexing cells in rag.ipynb first."
+            )
+        vectorstore = Chroma(
+            persist_directory=str(FINANCE_CHROMA_DIR),
+            embedding_function=embeddings,
         )
-        reranker = CrossEncoderReranker(model=cross_encoder, top_n=5)
-        _smart_retriever = SmartRetriever(vectorstore, reranker, k=20)
-    return _smart_retriever
+        _retriever = SmartRetriever(vectorstore, _build_reranker(), k=20)
+    return _retriever
+
+
+# backwards-compatible alias (finance code/tests referenced this name)
+def get_smart_retriever():
+    return get_retriever()

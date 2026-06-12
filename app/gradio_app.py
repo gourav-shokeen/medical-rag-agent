@@ -42,14 +42,17 @@ def ask(question: str):
     return out["answer"], steps, citations, meta
 
 
-with gr.Blocks(title="10-K Analyst Agent") as demo:
+with gr.Blocks(title="Medical Reference Agent") as demo:
     gr.Markdown(
-        "# 10-K Analyst Agent\n"
-        "Self-correcting RAG over SEC 10-K filings — Apple, Microsoft, NVIDIA."
+        "# Medical Reference Agent\n"
+        "Self-correcting RAG over published medical textbooks & clinical references.\n\n"
+        "> ⚠️ **Educational summaries from published medical references — not medical "
+        "advice.** For personal symptoms, consult a clinician (or seek emergency care "
+        "if urgent)."
     )
     question = gr.Textbox(
         label="Question",
-        placeholder="What was Apple's total net sales in fiscal 2023?",
+        placeholder="What is the first-line management of community-acquired pneumonia?",
     )
     btn = gr.Button("Ask", variant="primary")
     answer = gr.Markdown(label="Answer")

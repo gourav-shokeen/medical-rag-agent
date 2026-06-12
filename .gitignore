@@ -10,6 +10,8 @@ wheels/
 .venv
 data/
 chroma_db/
+chroma_med/
+chroma_med_test/
 .venv/
 .env
 __pycache__/

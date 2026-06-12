@@ -9,6 +9,26 @@ The point of this project isn't "chat with a PDF." It's that retrieval quality w
 <!-- TODO: add a screenshot of a cited answer here — it's the single most convincing thing a reader sees -->
 <!-- ![Cited answer example](docs/cited-answer.png) -->
 
+## Two corpora, one engine (`CORPUS` env)
+
+The same agentic engine runs over two interchangeable corpora, selected by the `CORPUS` env var:
+
+- **`CORPUS=finance`** — SEC 10-K filings (AAPL, MSFT, NVDA), with company-aware routing. Index: `chroma_db/`.
+- **`CORPUS=medical`** (default) — ~125k pre-chunked snippets from [MedRAG/textbooks](https://huggingface.co/datasets/MedRAG/textbooks) (USMLE medical textbooks). No company logic; optional `source` filter. Index: `chroma_med/`.
+
+Everything else is shared: the LangGraph self-correcting loop, the cross-encoder reranker, the structured-output graders, the FastAPI/Next.js/Gradio surfaces. Only the corpus, retrieval routing, and node prompts change — the finance path is preserved exactly.
+
+**Build the medical index** (one-time, ~hours on a consumer GPU; resumable, idempotent):
+```bash
+python ingest/build_medical_index.py            # MedRAG/textbooks
+# StatPearls is not redistributable via the HF Hub. To add it, build the chunks
+# locally with the MedRAG toolkit and pass --statpearls-dir <chunk_dir>.
+```
+
+**Medical safety frame.** Every open-ended medical answer ends with a standing not-advice frame, and the generator refuses to give personalized diagnosis/treatment ("I have chest pain, what should I do?" → defers to a clinician / emergency care). Answers cite `[source: title]` from the snippet metadata, and unanswerable questions return exactly *"This is not covered in the available medical references."*
+
+**MCQ mode.** `run_agent(question, options={"A": ...}, choice_only=True)` returns a single grounded `predicted_option` letter — the interface the MIRAGE benchmark calls.
+
 ## Architecture
 
 ```mermaid

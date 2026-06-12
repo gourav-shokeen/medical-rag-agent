@@ -1,8 +1,13 @@
-"""Agentic RAG over SEC 10-K filings, built with LangGraph.
+"""Agentic RAG built with LangGraph — corpus-agnostic orchestration.
 
 Flow: route -> retrieve -> grade_documents -> (rewrite_query -> retrieve loop, max 2
-rewrites) -> generate -> grade_answer -> END. Retrieval is the existing SmartRetriever
-(company filter + vector top-20 + cross-encoder top-5); this module only orchestrates.
+rewrites) -> generate -> grade_answer -> END. Domain-specific text (prompts, citation
+format, refusal string) comes from agent/domains.py, selected by the CORPUS env; the
+graph structure, reducer, and hard caps are identical across corpora.
+
+generate has two modes: open-ended (default) and MCQ (when `options` is supplied) —
+the latter picks a single option letter grounded in the retrieved passages, which is
+what the MIRAGE benchmark calls via run_agent(..., options=..., choice_only=True).
 """
 
 import logging
@@ -15,20 +20,14 @@ from langchain_core.documents import Document
 from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel
 
+from agent.domains import DOMAIN
 from agent.llm_provider import get_llm
-from agent.retriever import detect_companies, get_smart_retriever
+from agent.retriever import get_retriever
 from agent.tracing import get_langfuse
 
 logger = logging.getLogger(__name__)
 
-REFUSAL = "This information is not available in the filings."
-
-# small models paraphrase the refusal ("...in the passages/documents"); normalize
-# near-misses so downstream exact-match logic (citations, grading) stays correct
-_REFUSAL_PATTERN = re.compile(
-    r"information is not available in the (filings|passages|context|documents|provided)",
-    re.IGNORECASE,
-)
+REFUSAL = DOMAIN.refusal
 
 # Passage text per doc handed to the graders (keeps grading prompts small).
 _GRADE_DOC_CHARS = 1200
@@ -38,6 +37,7 @@ class AgentState(TypedDict):
     question: str  # current retrieval query; rewrite_query may replace it
     original_question: str  # what the user actually asked; generate answers THIS
     company: Optional[str]
+    source_filter: Optional[str]  # optional metadata filter (medical: source)
     documents: List[Document]
     generation: str
     citations: List[str]
@@ -47,6 +47,10 @@ class AgentState(TypedDict):
     grounded: Optional[bool]
     # verdict of grade_documents, read by the conditional edge
     docs_sufficient: Optional[bool]
+    # MCQ mode (open-ended when options is None)
+    options: Optional[dict]
+    choice_only: bool
+    predicted_option: Optional[str]
 
 
 class Grade(BaseModel):
@@ -78,10 +82,8 @@ def _grade(prompt: str, default: str = "yes") -> Grade:
 def _format_docs(documents: List[Document], max_chars: Optional[int] = None) -> str:
     parts = []
     for d in documents:
-        company = d.metadata.get("company", "UNKNOWN")
-        source = d.metadata.get("source", "10-K")
         text = d.page_content[:max_chars] if max_chars else d.page_content
-        parts.append(f"[{company}, {source}] {text}")
+        parts.append(f"{DOMAIN.doc_tag(d.metadata)} {text}")
     return "\n\n".join(parts)
 
 
@@ -89,18 +91,18 @@ def _format_docs(documents: List[Document], max_chars: Optional[int] = None) -> 
 
 
 def route(state: AgentState) -> dict:
-    companies = detect_companies(state["question"])
-    company = ",".join(companies) if companies else None
-    label = company if company else "none (searching all filings)"
+    routed = DOMAIN.route(state["question"])
     return {
-        "company": company,
-        "reasoning_steps": [f"Routed: detected company={label}, retrieval needed"],
+        "company": routed["company"],
+        "source_filter": routed["source_filter"],
+        "reasoning_steps": [routed["step"]],
     }
 
 
 def retrieve(state: AgentState) -> dict:
-    # SmartRetriever does its own company detection + filtering from the question
-    docs = list(get_smart_retriever().invoke(state["question"]))
+    docs = list(
+        get_retriever().invoke(state["question"], source=state.get("source_filter"))
+    )
     return {
         "documents": docs,
         "reasoning_steps": [f"Retrieved {len(docs)} candidate passages"],
@@ -129,15 +131,7 @@ def grade_documents(state: AgentState) -> dict:
 
 def rewrite_query(state: AgentState) -> dict:
     retries = state["retries"] + 1
-    response = get_llm().invoke(
-        "Rewrite this question to retrieve better passages from SEC 10-K filings. "
-        "The corpus contains ONLY the 10-K filings of Apple (AAPL), Microsoft (MSFT) "
-        "and NVIDIA (NVDA) — if the question hints at one of them, name it explicitly. "
-        "Expand abbreviations and add likely 10-K section terms (e.g. 'Risk Factors', "
-        "\"Management's Discussion and Analysis\", 'net sales', 'segment'). "
-        "Return ONLY the rewritten question, nothing else.\n\n"
-        f"Question: {state['question']}"
-    )
+    response = get_llm().invoke(DOMAIN.rewrite_prompt(state["question"]))
     # models sometimes add preamble or refuse despite "return ONLY the question";
     # fall back to the unchanged question — the retries cap still ends the loop
     lines = [l.strip().strip('"') for l in response.content.strip().splitlines() if l.strip()]
@@ -152,30 +146,59 @@ def rewrite_query(state: AgentState) -> dict:
     }
 
 
+def _parse_option(text: str, letters: List[str]) -> str:
+    """Pull the chosen option letter out of an LLM response (lenient)."""
+    upper = text.upper()
+    m = re.search(
+        r"\b(?:ANSWER|OPTION|BEST)\s*(?:IS|:)?\s*\(?([" + "".join(letters) + r"])\)?\b",
+        upper,
+    )
+    if m:
+        return m.group(1)
+    m = re.search(r"\b([" + "".join(letters) + r"])\b", upper)  # first standalone letter
+    return m.group(1) if m else letters[0]  # default: never crash the benchmark
+
+
 def generate(state: AgentState) -> dict:
     context = _format_docs(state["documents"])
-    system = (
-        "You are a financial analyst assistant answering from SEC 10-K filings. "
-        "Answer using ONLY the provided passages. Cite each claim as "
-        "[Company, Section]. If the answer is not in the passages, respond exactly: "
-        f"'{REFUSAL}' Do not use outside knowledge or guess. "
-        "Numbers inside tables in the passages count as available information — "
-        "when the passages contain the requested figures or facts, answer concisely "
-        "with them instead of refusing. Passages are excerpts and may come from any "
-        "section of a filing; judge them by their content, not by whether they name "
-        "a particular section. If the passages cover the question's topic but do not "
-        "mention a specific name or term used in the question, do not refuse — "
-        "answer with what the passages do state about that topic."
-    )
-    # answer the user's original question; the rewritten one only steered retrieval
     question = state.get("original_question") or state["question"]
+
+    if state.get("options"):
+        letters = list(state["options"].keys())
+        opts_text = "\n".join(f"{k}. {v}" for k, v in state["options"].items())
+        response = get_llm().invoke(
+            [
+                ("system", DOMAIN.mcq_system()),
+                (
+                    "human",
+                    f"Passages:\n{context}\n\nQuestion: {question}\n\n"
+                    f"Options:\n{opts_text}\n\n"
+                    "Choose the single best option. Start your reply with the letter.",
+                ),
+            ]
+        )
+        rationale = response.content.strip()
+        letter = _parse_option(rationale, letters)
+        generation = letter if state.get("choice_only") else rationale
+        citations = [] if state.get("choice_only") else _extract_citations(
+            rationale, state["documents"]
+        )
+        return {
+            "generation": generation,
+            "predicted_option": letter,
+            "citations": citations,
+            "reasoning_steps": [f"Selected option {letter} (grounded in passages)"],
+        }
+
+    # open-ended mode
     human = f"Passages:\n{context}\n\nQuestion: {question}"
     if state["question"] != question:
         human += f"\n(Clarified form used for retrieval: {state['question']})"
-    response = get_llm().invoke([("system", system), ("human", human)])
+    response = get_llm().invoke([("system", DOMAIN.generate_system()), ("human", human)])
     generation = response.content.strip()
-    if _REFUSAL_PATTERN.search(generation) and len(generation) < 200:
+    if DOMAIN.refusal_pattern.search(generation) and len(generation) < 200:
         generation = REFUSAL  # length guard: don't clobber real answers
+    generation = DOMAIN.finalize(generation)  # e.g. append the medical not-advice frame
     return {
         "generation": generation,
         "citations": _extract_citations(generation, state["documents"]),
@@ -191,16 +214,18 @@ def _extract_citations(generation: str, documents: List[Document]) -> List[str]:
     if cites:
         return cites
     # model answered but skipped inline brackets: fall back to the source docs
-    return sorted(
-        {
-            f"[{d.metadata.get('company', 'UNKNOWN')}, {d.metadata.get('source', '10-K')}]"
-            for d in documents
-        }
-    )
+    return sorted({DOMAIN.doc_tag(d.metadata) for d in documents})
 
 
 def grade_answer(state: AgentState) -> dict:
     # informational only — always proceeds to END, never loops
+    if state.get("options"):
+        return {
+            "grounded": True,
+            "reasoning_steps": [
+                f"Answer grounded: n/a (MCQ — selected {state.get('predicted_option')})"
+            ],
+        }
     if REFUSAL in state["generation"]:
         return {
             "grounded": True,
@@ -257,7 +282,12 @@ def build_graph():
 app = build_graph()
 
 
-def run_agent(question: str) -> dict:
+def run_agent(
+    question: str, options: Optional[dict] = None, choice_only: bool = False
+) -> dict:
+    """Run the agent. Open-ended when options is None; MCQ when options is a
+    {letter: text} dict — then the result includes `predicted_option`.
+    """
     from langchain_core.callbacks import UsageMetadataCallbackHandler
 
     handler, trace_url, client = get_langfuse()
@@ -269,6 +299,7 @@ def run_agent(question: str) -> dict:
         "question": question,
         "original_question": question,
         "company": None,
+        "source_filter": None,
         "documents": [],
         "generation": "",
         "citations": [],
@@ -276,6 +307,9 @@ def run_agent(question: str) -> dict:
         "reasoning_steps": [],
         "grounded": None,
         "docs_sufficient": None,
+        "options": options,
+        "choice_only": choice_only,
+        "predicted_option": None,
     }
 
     start = time.perf_counter()
@@ -303,6 +337,8 @@ def run_agent(question: str) -> dict:
         "contexts": [d.page_content for d in final["documents"]],
         "usage": usage,
     }
+    if options is not None:
+        result["predicted_option"] = final["predicted_option"]
     if trace_url:
         result["trace_url"] = trace_url
     return result

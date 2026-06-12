@@ -1,8 +1,9 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "10-K Analyst Agent",
-  description: "Agentic RAG over SEC 10-K filings (AAPL, MSFT, NVDA)",
+  title: "Medical Reference Agent",
+  description:
+    "Agentic RAG over published medical textbooks & clinical references (educational, not medical advice)",
 };
 
 export default function RootLayout({ children }) {
