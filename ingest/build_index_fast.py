@@ -37,7 +37,10 @@ from ingest.build_statpearls import CHUNK_DIR, _ordered_files
 # card; the longer/denser real corpus made 100M overshoot to 5.6 GB for nomic)
 EMBEDDER = {
     "general": {"tag": "nomic-st-v1.5", "budget": 50_000_000},
-    "medcpt": {"tag": "medcpt", "budget": 30_000_000},
+    # MedCPT (BERT-base, CLS pool) is lighter+faster than nomic: 50M -> 70 emb/sec
+    # @ 1.9 GB peak. Higher budgets are slightly SLOWER (100M -> 61/sec) and use
+    # more VRAM for no gain (compute-bound) — its measured optimum is 50M.
+    "medcpt": {"tag": "medcpt", "budget": 50_000_000},
 }
 
 
