@@ -1,0 +1,27 @@
+MIRAGE | retriever=general | tasks=['mmlu', 'medqa', 'medmcqa'] | sample 3/task
+
+  [medqa 1/3] pred=A gold=B X
+  [medqa 2/3] pred=D gold=D OK
+  [medqa 3/3] pred=B gold=B OK
+  [medmcqa 1/3] pred=A gold=A OK
+  [medmcqa 2/3] pred=D gold=A X
+  [medmcqa 3/3] pred=C gold=C OK
+  [mmlu 1/3] pred=A gold=A OK
+  [mmlu 2/3] pred=B gold=B OK
+  [mmlu 3/3] pred=B gold=A X
+
+=== MIRAGE results (retriever=general) ===
+task             n  correct    acc%
+medmcqa          3        2   66.67
+medqa            3        2   66.67
+mmlu             3        2   66.67
+MEAN                          66.67
+
+Published baselines (reference only, different corpus+generator):
+  GPT-4        79.97
+  GPT-3.5      71.56
+  Llama2-70B   53.38
+
+CAVEAT: textbooks+StatPearls only (no PubMed) -> research tasks limited; baselines used full MedCorp, so not an identical setup.
+
+Wrote E:\ai-projects\rag_finance\evals\mirage\results\mirage_general_20260613-124724.json

@@ -29,6 +29,10 @@ from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
+from dotenv import load_dotenv  # noqa: E402
+
+load_dotenv()  # pick up GROQ_API_KEY from .env
+
 from evals.mirage.load_mirage import EXAM_TASKS, load_mirage  # noqa: E402
 
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
@@ -109,7 +113,7 @@ def main():
         offline_smoke(args.tasks, max(args.sample_per_task, 1))
         return
 
-    os.environ.setdefault("LLM_PROVIDER", "groq")
+    os.environ["LLM_PROVIDER"] = "groq"  # MIRAGE always runs under Groq (force over .env)
     sample = 0 if args.full else args.sample_per_task
     print(f"MIRAGE | retriever={args.retriever} | tasks={args.tasks} | "
           f"{'FULL' if args.full else f'sample {sample}/task'}\n")
