@@ -1,0 +1,27 @@
+chroma_med/ total vectors: 491,497
+  by source: statpearls=365,650  textbook=125,847  other=0
+
+QUERY: first-line treatment for community-acquired pneumonia in adults
+  [statpearls: Aspiration Pneumonia -- Treatment / Management]
+  [statpearls: Cough: Evaluation and Management -- Treatment / Management -- Pneumonia]
+  [statpearls: Community-Acquired Pneumonia -- Treatment / Management]
+  [statpearls: Linezolid -- Administration -- Community-acquired pneumonia with concurrent bact]
+  [statpearls: Linezolid -- Administration -- Community-acquired pneumonia with concurrent bact]
+  -> statpearls in top-5: 5
+
+QUERY: management of diabetic ketoacidosis
+  [statpearls: Adult Diabetic Ketoacidosis -- Treatment / Management -- Adult Diabetic Ketoacid]
+  [statpearls: Adult Diabetic Ketoacidosis -- Treatment / Management -- Precipitating events]
+  [statpearls: Ketoacidosis -- Continuing Education Activity]
+  [statpearls: Pediatric Diabetic Ketoacidosis -- Treatment / Management]
+  [statpearls: Pediatric Diabetic Ketoacidosis -- Treatment / Management]
+  -> statpearls in top-5: 5
+
+QUERY: first-line antihypertensive in a patient with diabetes
+  [statpearls: Appropriate Use of SGLT2s and GLP-1 RAs With Insulin to Reduce CVD Risk in Patie]
+  [statpearls: Management of Cardiovascular and Diabetes Risks Based on National Guidelines -- ]
+  [statpearls: Appropriate Use of SGLT2s and GLP-1 RAs With Insulin to Reduce CVD Risk in Patie]
+  [statpearls: Antihypertensive Medications -- Continuing Education Activity]
+  [textbook: First_Aid_Step2]
+  -> statpearls in top-5: 4
+

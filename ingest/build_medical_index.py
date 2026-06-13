@@ -34,9 +34,13 @@ def get_vectorstore(retriever=None):
     """Shared medical Chroma handle for the active (or given) retriever kind."""
     from langchain_chroma import Chroma
 
-    from agent.config import medical_index
+    from agent.config import RETRIEVER, medical_index
     from agent.embeddings import get_medical_embeddings
 
+    # resolve once so the index dir AND the query embedder use the SAME kind
+    # (get_medical_embeddings(None) would otherwise default to "general" and
+    # query a MedCPT index with nomic vectors -> garbage)
+    retriever = retriever or RETRIEVER
     med_dir, med_collection = medical_index(retriever)
     return Chroma(
         collection_name=med_collection,
