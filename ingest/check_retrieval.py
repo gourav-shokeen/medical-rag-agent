@@ -29,7 +29,11 @@ def main():
     from ingest.build_medical_index import get_vectorstore
 
     vs = get_vectorstore()
-    print(f"chroma_med/ total vectors: {vs._collection.count():,}\n")
+    total = vs._collection.count()
+    n_sp = len(vs._collection.get(where={"source": "statpearls"}, include=[])["ids"])
+    n_tb = len(vs._collection.get(where={"source": "textbook"}, include=[])["ids"])
+    print(f"chroma_med/ total vectors: {total:,}")
+    print(f"  by source: statpearls={n_sp:,}  textbook={n_tb:,}  other={total - n_sp - n_tb:,}\n")
 
     rerank = None
     if not args.raw:
