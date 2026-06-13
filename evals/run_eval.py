@@ -58,7 +58,7 @@ def collect_agent_runs(rows):
             {
                 "id": row["id"],
                 "type": row["type"],
-                "company": row["company"],
+                "company": row.get("company"),  # finance-only; medical rows omit it
                 "question": row["question"],
                 "answer": out["answer"],
                 "citations": out["citations"],
