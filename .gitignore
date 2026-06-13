@@ -12,6 +12,8 @@ data/
 chroma_db/
 chroma_med/
 chroma_med_test/
+chroma_med_medcpt/
+chroma_fast_test/
 corpus/
 .venv/
 .env
@@ -21,6 +23,7 @@ __pycache__/
 
 # eval artifacts
 evals/results/
+evals/mirage/results/
 .deepeval/
 .deepeval_telemetry.txt
 deepeval-cache.json
