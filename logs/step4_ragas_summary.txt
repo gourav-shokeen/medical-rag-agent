@@ -1,0 +1,24 @@
+STEP 4 — RAGAS over medical golden (judge: Groq llama-3.3-70b-versatile @ temp 0; agent answers: llama-3.1-8b-instant)
+PARTIAL: the 70B judge's free-tier daily token limit (TPD 100,000) was reached after 6 rows.
+Real 70B-judged rows: m01-m06 (+ m07 answer_relevancy). Rows m07-m14 are null (judge TPD exhausted) and are RESUMABLE.
+
+metric                   average  n_scored
+faithfulness              0.7926         6
+answer_relevancy          0.9235         5
+context_precision          0.775         6
+
+Per-row (real rows):
+  m01: faith=0.4 relevancy=0.8451 precision=1.0
+  m02: faith=1.0 relevancy=None precision=1.0
+  m03: faith=0.8889 relevancy=0.8966 precision=1.0
+  m04: faith=0.6667 relevancy=1.0 precision=0.45
+  m05: faith=0.8 relevancy=None precision=0.2
+  m06: faith=1.0 relevancy=0.9735 precision=1.0
+  m07: faith=None relevancy=0.9023 precision=None
+
+RESUME after the Groq 70B daily reset (skips the already-scored rows; answers are fully cached so no agent calls re-run):
+  CORPUS=medical LLM_PROVIDER=groq JUDGE_PROVIDER=groq GROQ_MODEL=llama-3.1-8b-instant \
+    GOLDEN_PATH=evals/golden/golden_medical.jsonl python evals/run_eval.py
+
+Note: answer_relevancy is null on some rows because RAGAS requests n=3 generations but Groq caps n=1;
+the metric still yields a value on most rows, so its average is over n_scored<6.

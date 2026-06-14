@@ -19,12 +19,16 @@ DEFAULT_OLLAMA_MODEL = "llama3.1:8b"
 VALID_PROVIDERS = ("ollama", "groq")
 
 
-def get_llm(temperature: float = 0, provider: str | None = None):
+def get_llm(temperature: float = 0, provider: str | None = None,
+            model: str | None = None):
     """Return the chat model selected by LLM_PROVIDER (or the explicit override).
 
     The `provider` argument exists so callers with a FIXED provider requirement
     (e.g. the eval judge, which must always be Groq) don't silently follow the
-    agent's LLM_PROVIDER setting.
+    agent's LLM_PROVIDER setting. The `model` argument lets such callers pin a
+    SPECIFIC model (e.g. the judge's fixed 70B) independently of the GROQ_MODEL
+    env that the agent uses — otherwise cheapening the agent to 8b would also
+    silently downgrade the judge.
     """
     provider = (provider or os.getenv("LLM_PROVIDER", "")).strip().lower()
     if provider not in VALID_PROVIDERS:
@@ -41,7 +45,7 @@ def get_llm(temperature: float = 0, provider: str | None = None):
             )
         from langchain_groq import ChatGroq
 
-        model = os.getenv("GROQ_MODEL", DEFAULT_GROQ_MODEL)
+        model = model or os.getenv("GROQ_MODEL", DEFAULT_GROQ_MODEL)
         # max_retries=0: the eval harnesses handle quota/429 themselves (checkpoint
         # + clean exit) rather than letting the client silently spin on retries
         return ChatGroq(model=model, temperature=temperature, max_retries=0)
@@ -49,6 +53,6 @@ def get_llm(temperature: float = 0, provider: str | None = None):
     from langchain_ollama import ChatOllama
 
     return ChatOllama(
-        model=os.getenv("OLLAMA_MODEL", DEFAULT_OLLAMA_MODEL),
+        model=model or os.getenv("OLLAMA_MODEL", DEFAULT_OLLAMA_MODEL),
         temperature=temperature,
     )

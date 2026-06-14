@@ -87,12 +87,17 @@ def _is_terminal_quota(exc) -> bool:
     return wait is not None and wait > 120  # long wait => daily reset, not a minute
 
 
-def _score_with_backoff(run_agent, item, max_wait_rounds=6):
+def _score_with_backoff(run_agent, item, max_wait_rounds=12):
     """Run one MCQ question; on a transient per-minute 429, sleep + retry.
-    Raises SystemExit on a terminal (daily) quota limit."""
+    Raises SystemExit on a terminal (daily) quota limit.
+
+    Sleeps ESCALATE on repeated throttling of the same question: 8b's TPM ceiling
+    is only 6k tokens/minute, and the short Groq-hinted retry keeps re-failing
+    until the minute window drains, so each successive round waits longer (up to
+    ~65s) to force a clean reset. 12 rounds rides out the worst bursts."""
     import time as _t
 
-    for _ in range(max_wait_rounds):
+    for attempt in range(max_wait_rounds):
         try:
             return run_agent(item["question"], options=item["options"], choice_only=True)
         except Exception as exc:
@@ -102,8 +107,9 @@ def _score_with_backoff(run_agent, item, max_wait_rounds=6):
                 print(f"\nQUOTA EXHAUSTED (daily) — resumable, relaunch after reset. "
                       f"({str(exc)[:90]})", flush=True)
                 raise SystemExit
-            wait = min((_retry_seconds(exc) or 20) + 2, 75)
-            print(f"    per-minute rate limit; sleeping {wait:.0f}s...", flush=True)
+            wait = min(max((_retry_seconds(exc) or 15) + 2, 20 + attempt * 10), 65)
+            print(f"    per-minute rate limit; sleeping {wait:.0f}s "
+                  f"(attempt {attempt + 1})...", flush=True)
             _t.sleep(wait)
     # exhausted local retries without success -> treat as terminal for safety
     print("\nToo many per-minute rate limits — stopping (resumable).", flush=True)

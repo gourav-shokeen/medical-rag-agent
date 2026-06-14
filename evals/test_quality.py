@@ -37,10 +37,31 @@ def judge():
 
 @pytest.fixture(scope="session")
 def agent_outputs():
-    """One agent run per smoke row, shared by all metric tests."""
+    """One agent output per smoke row, shared by all metric tests.
+
+    Reuses answers already cached by run_eval.py (eval_answers_progress.jsonl) so
+    DeepEval doesn't re-spend Groq quota re-answering rows RAGAS already ran; any
+    row not in the cache is answered live.
+    """
+    import json
+    from pathlib import Path
+
+    cache_path = (Path(__file__).resolve().parent / "results"
+                  / "eval_answers_progress.jsonl")
+    cached = {}
+    if cache_path.exists():
+        for line in cache_path.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                r = json.loads(line)
+                cached[r["id"]] = {"answer": r["response"],
+                                   "contexts": r["retrieved_contexts"]}
+
     from agent.graph import run_agent
 
-    return {row["id"]: run_agent(row["question"]) for row in SMOKE_ROWS}
+    outputs = {}
+    for row in SMOKE_ROWS:
+        outputs[row["id"]] = cached.get(row["id"]) or run_agent(row["question"])
+    return outputs
 
 
 def _test_case(row, out):

@@ -20,12 +20,17 @@ from agent.llm_provider import get_llm
 load_dotenv()
 
 JUDGE_PROVIDER = os.getenv("JUDGE_PROVIDER", "groq")
+# The judge is PINNED to 70B regardless of GROQ_MODEL (which the agent may set to
+# 8b to stretch quota). JUDGE_MODEL overrides only if you deliberately want a
+# different fixed judge. Ollama judge ignores this (uses OLLAMA_MODEL).
+JUDGE_MODEL = os.getenv("JUDGE_MODEL", "llama-3.3-70b-versatile")
 _EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
 
 def get_judge_llm():
     """The one judge chat model (LangChain object, temperature 0)."""
-    return get_llm(temperature=0, provider=JUDGE_PROVIDER)
+    model = JUDGE_MODEL if JUDGE_PROVIDER == "groq" else None
+    return get_llm(temperature=0, provider=JUDGE_PROVIDER, model=model)
 
 
 def get_ragas_llm():
