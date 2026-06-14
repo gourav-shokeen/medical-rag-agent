@@ -3,6 +3,53 @@
 Branch: `feat/medical-corpus`. Everything below is committed; run logs are copied
 into `logs/`.
 
+---
+
+## UPDATE (2026-06-14) — full evals run, real numbers in
+
+The Groq quota reset, so the full evals below were actually run (not just smoked).
+All numbers are now in `README.md` (section "Medical corpus — MIRAGE benchmark &
+MedCPT ablation"). Per-eval captures are in `logs/step3_mirage_ablation.txt`,
+`logs/step3b_research_summary.txt`, `logs/step4_ragas_summary.txt`.
+
+**MIRAGE exam ablation (30 q/task, 8b-instant agent, the headline):**
+
+| Task | general (nomic) | MedCPT | Δ |
+|---|---|---|---|
+| MMLU-Med | 70.00 | 63.33 | −6.67 |
+| MedQA-US | 60.00 | 56.67 | −3.33 |
+| MedMCQA | 56.67 | 53.33 | −3.34 |
+| **Exam mean** | **62.22** | **57.78** | **−4.44** |
+
+The general nomic encoder **beat** the domain-specific MedCPT encoder. Retrieval
+probe (`evals/retrieval_ablation.py`, no LLM) shows why: MedCPT surfaces more
+StatPearls (hit-rate 0.771 vs 0.665, **+0.106**) but the general ms-marco reranker
+scores its passages far lower (−1.023 vs 0.817, **−1.840**). Stage misalignment —
+a domain encoder doesn't pay off with a general reranker + generator downstream.
+
+**Research tasks (general, separate — no PubMed corpus):** PubMedQA 46.67, BioASQ
+63.33. Never folded into the exam headline.
+
+**RAGAS (medical golden, fixed 70B judge @ temp 0):** faithfulness 0.793 (n=6),
+answer_relevancy 0.924 (n=5), context_precision 0.775 (n=6). **PARTIAL** — the 70B
+free-tier daily token cap (100k) is reached after ~6 rows (the judge uses ~16k
+tokens/row). Rows 7–14 are checkpointed null and resumable.
+
+**Still pending the next 70B daily reset (resume commands):**
+```bash
+# RAGAS rows 7-14 (skips the 6 done; agent answers are cached, nothing re-runs):
+CORPUS=medical LLM_PROVIDER=groq JUDGE_PROVIDER=groq GROQ_MODEL=llama-3.1-8b-instant \
+  GOLDEN_PATH=evals/golden/golden_medical.jsonl python evals/run_eval.py
+
+# DeepEval smoke gate (same 70B judge — blocked on the same cap until reset):
+CORPUS=medical LLM_PROVIDER=groq JUDGE_PROVIDER=groq GROQ_MODEL=llama-3.1-8b-instant \
+  GOLDEN_PATH=evals/golden/golden_medical.jsonl python -m pytest evals/test_quality.py
+```
+Everything is per-question resumable: transient per-minute rate-limits back off and
+retry; the daily token-limit checkpoints and exits cleanly with the relaunch line.
+
+---
+
 ## TL;DR
 
 - **StatPearls is in.** `chroma_med/` was fully re-embedded on GPU with

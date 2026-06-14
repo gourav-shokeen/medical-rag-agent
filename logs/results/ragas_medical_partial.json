@@ -1,0 +1,262 @@
+{
+  "timestamp_utc": "20260614-054308",
+  "judge_provider": "groq",
+  "judge_model": "llama-3.3-70b-versatile",
+  "n_questions": 14,
+  "n_scored": 14,
+  "averages": {
+    "faithfulness": 0.7926,
+    "answer_relevancy": 0.9235,
+    "context_precision": 0.775
+  },
+  "per_question": [
+    {
+      "id": "m01",
+      "type": "factual",
+      "company": null,
+      "user_input": "What is the first-line antibiotic treatment for community-acquired pneumonia in a previously healthy outpatient adult?",
+      "response": "According to the 2019 ATS/IDSA guidelines, for adults without severe pneumonia, significant comorbidities, or risk factors for antibiotic-resistant pathogens in the outpatient setting, high-dose amoxicillin is the preferred empiric antibiotic regimen for community-acquired pneumonia in healthy outpatients 64 and younger [source: Cough: Evaluation and Management -- Treatment / Management -- Pneumonia].\n\nThis is an educational summary of published references, not medical advice; it does not diagnose or recommend treatment for an individual \u2014 consult a clinician.",
+      "reference": "A macrolide (e.g. azithromycin or clarithromycin) or doxycycline is first-line for previously healthy outpatients with no comorbidities or recent antibiotic use; patients with comorbidities get a respiratory fluoroquinolone or a beta-lactam plus a macrolide.",
+      "citations": [
+        "[source: Cough: Evaluation and Management -- Treatment / Management -- Pneumonia]"
+      ],
+      "retries": 0,
+      "grounded": true,
+      "latency_ms": 106864.5,
+      "faithfulness": 0.4,
+      "answer_relevancy": 0.8451,
+      "context_precision": 1.0
+    },
+    {
+      "id": "m02",
+      "type": "factual",
+      "company": null,
+      "user_input": "What are the core components of managing diabetic ketoacidosis?",
+      "response": "The core components of managing diabetic ketoacidosis include:\n\n1. Fluid resuscitation and maintenance [statpearls: Adult Diabetic Ketoacidosis -- Treatment / Management -- Adult Diabetic Ketoacidosis Management. The primary management approach to DKA management includes fluid resuscitation and maintenance, insulin therapy, electrolyte replacement, and supportive care. [33]]\n2. Insulin therapy [statpearls: Adult Diabetic Ketoacidosis -- Treatment / Management -- Adult Diabetic Ketoacidosis Management. The primary management approach to DKA management includes fluid resuscitation and maintenance, insulin therapy, electrolyte replacement, and supportive care. [33]]\n3. Electrolyte replacement, mainly potassium [statpearls: Ketoacidosis -- Treatment / Management. After the initial stabilization of circulation, airway, and breathing as a priority, specific treatment of DKA requires correction of hyperglycemia with intravenous insulin, frequent monitoring, and replacement of electrolytes, mainly potassium, correction of hypovolemia with intravenous fluids, and correction of acidosis.]\n4. Correction of hypovolemia with intravenous fluids [statpearls: Ketoacidosis -- Treatment / Management. After the initial stabilization of circulation, airway, and breathing as a priority, specific treatment of DKA requires correction of hyperglycemia with intravenous insulin, frequent monitoring, and replacement of electrolytes, mainly potassium, correction of hypovolemia with intravenous fluids, and correction of acidosis.]\n5. Correction of acidosis [statpearls: Ketoacidosis -- Treatment / Management. After the initial stabilization of circulation, airway, and breathing as a priority, specific treatment of DKA requires correction of hyperglycemia with intravenous insulin, frequent monitoring, and replacement of electrolytes, mainly potassium, correction of hypovolemia with intravenous fluids, and correction of acidosis.]\n\nKey factors to consider in the initial stabilization and ongoing care of patients with diabetic ketoacidosis include:\n\n- Initial stabilization of circulation, airway, and breathing as a priority [statpearls: Ketoacidosis -- Treatment / Management. After the initial stabilization of circulation, airway, and breathing as a priority, specific treatment of DKA requires correction of hyperglycemia with intravenous insulin, frequent monitoring, and replacement of electrolytes, mainly potassium, correction of hypovolemia with intravenous fluids, and correction of acidosis.]\n- Frequent monitoring of blood glucose levels and electrolytes, especially on an hourly basis during the initial phase of management [statpearls: Ketoacidosis -- Treatment / Management. Blood glucose levels and electrolytes should\u00a0be monitored\u00a0on an hourly basis during the initial phase of management.]\n- Admission to the intensive care unit, if necessary, due to the potential severity and need for frequent monitoring [statpearls: Ketoacidosis -- Treatment / Management. Given the potential severity and the need for frequent monitoring for intravenous insulin therapy and possible\u00a0arrhythmias, patients may be admitted to the intensive care unit.]\n\nThis is an educational summary of published references, not medical advice; it does not diagnose or recommend treatment for an individual \u2014 consult a clinician.",
+      "reference": "Management of DKA centers on intravenous fluid resuscitation (isotonic saline), a continuous insulin infusion, and electrolyte correction\u2014especially potassium repletion\u2014with close monitoring of glucose, anion gap, and ketones, plus treatment of the precipitating cause.",
+      "citations": [
+        "[33]",
+        "[statpearls: Ketoacidosis -- Treatment / Management. After the initial stabilization of circulation, airway, and breathing as a priority, specific treatment of DKA requires correction of hyperglycemia with intravenous insulin, frequent monitoring, and replacement of electrolytes, mainly potassium, correction of hypovolemia with intravenous fluids, and correction of acidosis.]",
+        "[statpearls: Ketoacidosis -- Treatment / Management. Blood glucose levels and electrolytes should\u00a0be monitored\u00a0on an hourly basis during the initial phase of management.]",
+        "[statpearls: Ketoacidosis -- Treatment / Management. Given the potential severity and the need for frequent monitoring for intravenous insulin therapy and possible\u00a0arrhythmias, patients may be admitted to the intensive care unit.]"
+      ],
+      "retries": 1,
+      "grounded": true,
+      "latency_ms": 8862.8,
+      "faithfulness": 1.0,
+      "answer_relevancy": null,
+      "context_precision": 1.0
+    },
+    {
+      "id": "m03",
+      "type": "factual",
+      "company": null,
+      "user_input": "What is a preferred first-line antihypertensive for a patient with comorbid diabetes mellitus?",
+      "response": "According to the passages, for patients with comorbid diabetes mellitus and without CKD, the preferred first-line antihypertensive therapies are:\n\n- ACE inhibitors or ARBs in the non-Black population [source: ACE Inhibitors -- Indications -- FDA Approved Indications]\n- ACE inhibitors and ARBs have been considered the keystone of antihypertensive treatment in diabetic patients [source: Appropriate Use of SGLT2s and GLP-1 RAs With Insulin to Reduce CVD Risk in Patients With Diabetes (Archived) -- Clinical Significance -- Initial Therapy for Hypertension Control in Patients with Diabetes]\n\nHowever, for patients with diabetes mellitus and without CKD in the Black population, the preferred first-line antihypertensive therapies are a thiazide diuretic or CCB instead of an ACE inhibitor or ARB [source: ACE Inhibitors -- Indications -- FDA Approved Indications].\n\nThis is an educational summary of published references, not medical advice; it does not diagnose or recommend treatment for an individual \u2014 consult a clinician.",
+      "reference": "An ACE inhibitor or angiotensin receptor blocker (ARB) is preferred first-line in patients with diabetes, particularly when albuminuria is present, because of renal protective benefits.",
+      "citations": [
+        "[source: ACE Inhibitors -- Indications -- FDA Approved Indications]",
+        "[source: Appropriate Use of SGLT2s and GLP-1 RAs With Insulin to Reduce CVD Risk in Patients With Diabetes (Archived) -- Clinical Significance -- Initial Therapy for Hypertension Control in Patients with Diabetes]"
+      ],
+      "retries": 0,
+      "grounded": true,
+      "latency_ms": 4962.2,
+      "faithfulness": 0.8889,
+      "answer_relevancy": 0.8966,
+      "context_precision": 1.0
+    },
+    {
+      "id": "m04",
+      "type": "factual",
+      "company": null,
+      "user_input": "What are the qSOFA criteria used to identify patients at risk of poor outcomes from sepsis?",
+      "response": "According to the passages, the qSOFA criteria used to identify patients at risk of poor outcomes from sepsis are:\n\n- Altered mental status\n- Systolic blood pressure of 100 mmHg or less\n- Respiratory rate greater than 22 breaths/minute\n\n[source: Surgery_Schwartz, Table 6-2]\n\nThis is an educational summary of published references, not medical advice; it does not diagnose or recommend treatment for an individual \u2014 consult a clinician.",
+      "reference": "qSOFA flags sepsis risk with any 2 of 3 bedside criteria: respiratory rate >= 22/min, altered mental status (GCS < 15), and systolic blood pressure <= 100 mmHg.",
+      "citations": [
+        "[source: Surgery_Schwartz, Table 6-2]"
+      ],
+      "retries": 0,
+      "grounded": true,
+      "latency_ms": 5826.6,
+      "faithfulness": 0.6667,
+      "answer_relevancy": 1.0,
+      "context_precision": 0.45
+    },
+    {
+      "id": "m05",
+      "type": "factual",
+      "company": null,
+      "user_input": "What is the first-line pharmacologic treatment for status epilepticus?",
+      "response": "The first-line pharmacologic treatment for status epilepticus is not explicitly stated in the provided passages. However, it is mentioned that benzodiazepines are often used as first-line treatment, but the passages do not specify the exact medication. \n\nIt is also mentioned that IV immunoglobulin and plasmapheresis can be used as first-line treatment options depending on patient characteristics and clinical context.\n\nThis is an educational summary of published references, not medical advice; it does not diagnose or recommend treatment for an individual \u2014 consult a clinician.",
+      "reference": "A benzodiazepine (intravenous lorazepam, or intramuscular midazolam if no IV access) is first-line for status epilepticus, followed by a second-line antiseizure agent such as levetiracetam, fosphenytoin/phenytoin, or valproate if seizures persist.",
+      "citations": [
+        "[statpearls: New Onset Refractory Status Epilepticus -- Treatment / Management]",
+        "[statpearls: Seizure -- Treatment / Management]",
+        "[textbook: Pharmacology_Katzung]"
+      ],
+      "retries": 0,
+      "grounded": false,
+      "latency_ms": 37993.1,
+      "faithfulness": 0.8,
+      "answer_relevancy": null,
+      "context_precision": 0.2
+    },
+    {
+      "id": "m06",
+      "type": "factual",
+      "company": null,
+      "user_input": "What are important contraindications to metformin?",
+      "response": "According to the provided passages, important contraindications to metformin include:\n\n1. Severe renal dysfunction, defined as a GFR of less than 30 mL/min/1.73m\u00b2 [statpearls: Metformin -- Contraindications]\n2. Hypersensitivity to metformin [statpearls: Metformin -- Contraindications, statpearls: Oral Hypoglycemic Medications -- Contraindications]\n3. Metabolic acidosis, including diabetic ketoacidosis [statpearls: Metformin -- Contraindications, statpearls: Oral Hypoglycemic Medications -- Contraindications]\n4. Abnormal creatinine clearance (CrCl) or serum creatinine (SCr) levels greater than or equal to 1.5 in men and 1.4 in women [statpearls: Metformin -- Contraindications]\n5. Risk factors for lactic acidosis [statpearls: Metformin -- Contraindications]\n6. Nausea, vomiting, and dehydration [statpearls: Metformin -- Contraindications]\n7. Hepatic impairment [statpearls: Metformin -- Contraindications]\n8. Unstable heart failure [statpearls: Metformin -- Contraindications]\n9. GFR <60 mL/min/1.73\u00b2, receiving contrast intra-articularly, or iodinated contrast agents [statpearls: Metformin -- Contraindications]\n\nThese contraindications are based on the provided passages and may not be an exhaustive list.\n\nThis is an educational summary of published references, not medical advice; it does not diagnose or recommend treatment for an individual \u2014 consult a clinician.",
+      "reference": "Metformin is contraindicated in significant renal impairment (e.g. eGFR < 30 mL/min/1.73m2), acute metabolic acidosis including diabetic ketoacidosis, and conditions predisposing to lactic acidosis or tissue hypoperfusion; it is held around iodinated contrast and in acute illness.",
+      "citations": [
+        "[statpearls: Metformin -- Contraindications]",
+        "[statpearls: Metformin -- Contraindications, statpearls: Oral Hypoglycemic Medications -- Contraindications]"
+      ],
+      "retries": 0,
+      "grounded": true,
+      "latency_ms": 5197.6,
+      "faithfulness": 1.0,
+      "answer_relevancy": 0.9735,
+      "context_precision": 1.0
+    },
+    {
+      "id": "m07",
+      "type": "factual",
+      "company": null,
+      "user_input": "By what mechanism do beta-blockers benefit patients with heart failure with reduced ejection fraction?",
+      "response": "Beta-blockers benefit patients with heart failure with reduced ejection fraction (HFrEF) by reversing sympathetic activation, improving survival, reducing heart failure hospitalizations, and increasing left ventricular ejection fraction (LVEF) [source: Pharmacology_Katzung]. They also reduce mortality by blocking the adverse effects of high catecholamine levels on the heart [source: Pharmacology_Katzung].\n\nThis is an educational summary of published references, not medical advice; it does not diagnose or recommend treatment for an individual \u2014 consult a clinician.",
+      "reference": "Beta-blockers antagonize beta-adrenergic receptors, blunting chronic sympathetic (catecholamine) overactivation; this lowers heart rate and myocardial oxygen demand, reduces arrhythmia risk, and promotes reverse remodeling, improving ejection fraction and survival in HFrEF.",
+      "citations": [
+        "[source: Pharmacology_Katzung]"
+      ],
+      "retries": 0,
+      "grounded": true,
+      "latency_ms": 5232.0,
+      "faithfulness": null,
+      "answer_relevancy": 0.9023,
+      "context_precision": null
+    },
+    {
+      "id": "m08",
+      "type": "factual",
+      "company": null,
+      "user_input": "What is the initial diagnostic workup for a hemodynamically stable patient with suspected pulmonary embolism?",
+      "response": "For a hemodynamically stable patient with suspected pulmonary embolism, an approach that combines clinical and pretest probability assessment, D-dimer testing, and definitive diagnostic imaging is usually applied. Specifically, for patients with a low probability of pulmonary embolus (Wells score <2), the initial diagnostic workup may not require immediate imaging studies. [51]\n\nThis is an educational summary of published references, not medical advice; it does not diagnose or recommend treatment for an individual \u2014 consult a clinician.",
+      "reference": "Risk stratify with a clinical pretest probability score (e.g. Wells); for low/intermediate probability use a D-dimer, and if elevated or probability is high proceed to CT pulmonary angiography (the test of choice), with a V/Q scan as an alternative when CTPA is contraindicated.",
+      "citations": [
+        "[51]"
+      ],
+      "retries": 0,
+      "grounded": true,
+      "latency_ms": 4935.2,
+      "faithfulness": null,
+      "answer_relevancy": null,
+      "context_precision": null
+    },
+    {
+      "id": "m09",
+      "type": "factual",
+      "company": null,
+      "user_input": "What is the typical clinical presentation of acute appendicitis?",
+      "response": "The typical clinical presentation of acute appendicitis is a diffuse or periumbilical abdominal pain that eventually becomes localized to the right lower quadrant. This pain may be accompanied by anorexia, nausea with or without vomiting, diarrhea, malaise, and urinary frequency or urgency. Approximately 40% of patients with acute appendicitis are febrile at the time of presentation. The pain may also awaken the patient from sleep or intensify when walking or coughing. [statpearls: Appendicitis -- History and Physical]\n\nAdditionally, the pain of appendicitis typically begins in the periumbilical region and migrates to the right lower quadrant over McBurney's point. Associated symptoms are anorexia, nausea, low-grade fever, and vomiting. [statpearls: Acute Abdomen -- History and Physical -- Classic Presentation of Abdominal Pain]\n\nThis is an educational summary of published references, not medical advice; it does not diagnose or recommend treatment for an individual \u2014 consult a clinician.",
+      "reference": "Acute appendicitis typically presents with periumbilical pain that migrates to the right lower quadrant (McBurney point), accompanied by anorexia, nausea/vomiting, low-grade fever, and right lower quadrant tenderness with guarding and rebound.",
+      "citations": [
+        "[statpearls: Appendicitis -- History and Physical]",
+        "[statpearls: Acute Abdomen -- History and Physical -- Classic Presentation of Abdominal Pain]"
+      ],
+      "retries": 0,
+      "grounded": true,
+      "latency_ms": 36547.8,
+      "faithfulness": null,
+      "answer_relevancy": null,
+      "context_precision": null
+    },
+    {
+      "id": "m10",
+      "type": "factual",
+      "company": null,
+      "user_input": "What is the mechanism of action of ACE inhibitors?",
+      "response": "ACE inhibitors are competitive inhibitors of the angiotensin-converting enzyme (ACE), which prevents the conversion of angiotensin I to angiotensin II. This action reduces the concentrations of angiotensin II and aldosterone, leading to vasodilation, decreased blood pressure, and prevention of adverse cardiac remodeling [source: statpearls: ACE Inhibitors -- Mechanism of Action].\n\nACE inhibitors also interfere with the renin-angiotensin-aldosterone system, but their effect is not directly related to renin levels in the blood [source: statpearls: Angiotensin-Converting Enzyme Inhibitors (ACEI) -- Mechanism of Action]. They decrease the production of angiotensin II, enhancing natriuresis, lowering blood pressure, and preventing remodeling of smooth muscle and cardiac myocytes [source: statpearls: Angiotensin-Converting Enzyme Inhibitors (ACEI) -- Mechanism of Action].\n\nAdditionally, ACE inhibitors may interfere with the degradation of bradykinin, a peptide that causes vasodilation, and increase bradykinin levels, resulting in vasodilation [source: statpearls: Enalapril -- Mechanism of Action] and [source: statpearls: Angiotensin-Converting Enzyme Inhibitors (ACEI) -- Mechanism of Action].\n\nACE inhibitors alter the balance between the vasodilatory and natriuretic properties of bradykinin and the vasoconstrictive and salt-retentive properties of Angiotensin II by decreasing the formation of Angiotensin II and the degradation of bradykinin [source: statpearls: Angiotensin-Converting Enzyme Inhibitors (ACEI) -- Mechanism of Action].\n\nThis is an educational summary of published references, not medical advice; it does not diagnose or recommend treatment for an individual \u2014 consult a clinician.",
+      "reference": "ACE inhibitors block angiotensin-converting enzyme, reducing conversion of angiotensin I to angiotensin II; this causes vasodilation, lowers aldosterone (reducing sodium/water retention), and decreases bradykinin breakdown, collectively lowering blood pressure and reducing cardiac/renal afterload.",
+      "citations": [
+        "[source: statpearls: ACE Inhibitors -- Mechanism of Action]",
+        "[source: statpearls: Angiotensin-Converting Enzyme Inhibitors (ACEI) -- Mechanism of Action]",
+        "[source: statpearls: Enalapril -- Mechanism of Action]"
+      ],
+      "retries": 0,
+      "grounded": true,
+      "latency_ms": 5691.8,
+      "faithfulness": null,
+      "answer_relevancy": null,
+      "context_precision": null
+    },
+    {
+      "id": "m11",
+      "type": "unanswerable",
+      "company": null,
+      "user_input": "What is the capital city of Australia?",
+      "response": "This is not covered in the available medical references.",
+      "reference": "This is not covered in the available medical references.",
+      "citations": [],
+      "retries": 1,
+      "grounded": true,
+      "latency_ms": 7422.1,
+      "faithfulness": null,
+      "answer_relevancy": null,
+      "context_precision": null
+    },
+    {
+      "id": "m12",
+      "type": "unanswerable",
+      "company": null,
+      "user_input": "I have had crushing chest pain and shortness of breath for the last hour. What condition do I have and what should I do?",
+      "response": "I cannot provide personal medical advice. If you are experiencing crushing chest pain and shortness of breath, please seek immediate medical attention. You can call emergency services or visit the emergency room. \n\nHowever, I can provide general information about myocardial infarction (MI) based on the provided passages.\n\nMyocardial infarction (MI) is caused by a prolonged imbalance between oxygen supply and demand, leading to myocardial ischemia and cell death. The pathophysiological mechanisms include acute atherothrombotic coronary artery disease, mismatch between demand and supply, coronary artery spasm, embolism, spontaneous coronary artery dissection, and MI with nonobstructive coronary arteries (MINOCA).\n\nClinical presentations of MI include chest discomfort or pressure that can radiate to the neck, jaw, shoulder, or arm, as well as shortness of breath, fatigue, nausea, diaphoresis, palpitations, lightheadedness, and syncope.\n\nThe diagnosis of MI is based on a combination of patient history, electrocardiographic changes, and elevated cardiac biomarkers, especially high sensitivity troponin.\n\nFirst-line treatments for MI include prompt reperfusion and restoration of blood flow to the heart, which can be achieved through thrombolysis or primary percutaneous coronary intervention (PCI). Early treatment within 6 hours of symptom onset significantly improves prognosis.\n\nIt is essential to seek immediate medical attention if you are experiencing symptoms of MI. Please do not delay seeking help.\n\nReferences:\n[statpearls: Acute Myocardial Infarction -- History and Physical]\n[statpearls: Acute Myocardial Infarction -- Introduction]\n[statpearls: Myocardial Infarction -- Continuing Education Activity]\n\nThis is an educational summary of published references, not medical advice; it does not diagnose or recommend treatment for an individual \u2014 consult a clinician.",
+      "reference": "This is not covered in the available medical references.",
+      "citations": [
+        "[statpearls: Acute Myocardial Infarction -- History and Physical]",
+        "[statpearls: Acute Myocardial Infarction -- Introduction]",
+        "[statpearls: Myocardial Infarction -- Continuing Education Activity]"
+      ],
+      "retries": 1,
+      "grounded": true,
+      "latency_ms": 8932.1,
+      "faithfulness": null,
+      "answer_relevancy": null,
+      "context_precision": null
+    },
+    {
+      "id": "m13",
+      "type": "unanswerable",
+      "company": null,
+      "user_input": "Which new drugs did the FDA approve last week?",
+      "response": "This is not covered in the available medical references.",
+      "reference": "This is not covered in the available medical references.",
+      "citations": [],
+      "retries": 2,
+      "grounded": true,
+      "latency_ms": 10093.5,
+      "faithfulness": null,
+      "answer_relevancy": null,
+      "context_precision": null
+    },
+    {
+      "id": "m14",
+      "type": "unanswerable",
+      "company": null,
+      "user_input": "What was the serum sodium level recorded for the patient in bed 4 this morning?",
+      "response": "This question appears to be a request for a specific patient's serum sodium level, which is not provided in the passages. However, I can provide general information on the typical serum sodium concentrations recorded for patients presenting with symptoms of hyponatremia or hypernatremia.\n\nHyponatremia is diagnosed when the serum sodium level is less than 135 mmol/L [1: Electrolytes -- Introduction -- Sodium]. Symptoms of hyponatremia include headaches, confusion, nausea, and delirium [1: Electrolytes -- Introduction -- Sodium]. In the syndrome of inappropriate antidiuretic hormone secretion (SIADH), patients may have a serum sodium concentration below 120 mmol/L [1: Syndrome of Inappropriate Antidiuretic Hormone Secretion -- History and Physical].\n\nHypernatremia occurs when serum sodium levels are greater than 145 mmol/L [1: Electrolytes -- Introduction -- Sodium]. Symptoms of hypernatremia include tachypnea, sleeping difficulty, and restlessness [1: Electrolytes -- Introduction -- Sodium].\n\nThe serum sodium value reflects the relative loss of solute to total body water (TBW). In isonatremic dehydration, the serum sodium value is 130 to 150 mEq/L (130-150 mmol/L) [3: Pediatric Dehydration -- Evaluation]. Hyponatremic dehydration occurs when the serum sodium is less than 130 mEq/L (130 mmol/L) [3: Pediatric Dehydration -- Evaluation]. Hypernatremic dehydration occurs when the serum sodium exceeds 150 mEq/L (150 mmol/L) [3: Pediatric Dehydration -- Evaluation].\n\nI cannot provide a specific serum sodium level for the patient in bed 4 this morning as it is not provided in the passages.\n\nThis is an educational summary of published references, not medical advice; it does not diagnose or recommend treatment for an individual \u2014 consult a clinician.",
+      "reference": "This is not covered in the available medical references.",
+      "citations": [
+        "[1: Electrolytes -- Introduction -- Sodium]",
+        "[1: Syndrome of Inappropriate Antidiuretic Hormone Secretion -- History and Physical]",
+        "[3: Pediatric Dehydration -- Evaluation]"
+      ],
+      "retries": 2,
+      "grounded": true,
+      "latency_ms": 12067.3,
+      "faithfulness": null,
+      "answer_relevancy": null,
+      "context_precision": null
+    }
+  ]
+}

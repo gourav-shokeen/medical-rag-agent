@@ -1,0 +1,745 @@
+{
+  "retriever": "medcpt",
+  "model": "llama-3.1-8b-instant",
+  "quota_exhausted": false,
+  "n_scored": 90,
+  "per_task": {
+    "medqa": {
+      "n": 30,
+      "correct": 17,
+      "acc": 56.67
+    },
+    "medmcqa": {
+      "n": 30,
+      "correct": 16,
+      "acc": 53.33
+    },
+    "mmlu": {
+      "n": 30,
+      "correct": 19,
+      "acc": 63.33
+    }
+  },
+  "details": [
+    {
+      "task": "medqa",
+      "id": "0000",
+      "predicted": "A",
+      "gold": "B",
+      "correct": false,
+      "latency_ms": 89556
+    },
+    {
+      "task": "medqa",
+      "id": "0001",
+      "predicted": "C",
+      "gold": "D",
+      "correct": false,
+      "latency_ms": 1731
+    },
+    {
+      "task": "medqa",
+      "id": "0002",
+      "predicted": "B",
+      "gold": "B",
+      "correct": true,
+      "latency_ms": 2659
+    },
+    {
+      "task": "medqa",
+      "id": "0003",
+      "predicted": "B",
+      "gold": "D",
+      "correct": false,
+      "latency_ms": 1875
+    },
+    {
+      "task": "medqa",
+      "id": "0004",
+      "predicted": "B",
+      "gold": "B",
+      "correct": true,
+      "latency_ms": 1958
+    },
+    {
+      "task": "medqa",
+      "id": "0005",
+      "predicted": "B",
+      "gold": "D",
+      "correct": false,
+      "latency_ms": 2328
+    },
+    {
+      "task": "medqa",
+      "id": "0006",
+      "predicted": "A",
+      "gold": "C",
+      "correct": false,
+      "latency_ms": 2185
+    },
+    {
+      "task": "medqa",
+      "id": "0007",
+      "predicted": "C",
+      "gold": "C",
+      "correct": true,
+      "latency_ms": 10242
+    },
+    {
+      "task": "medqa",
+      "id": "0008",
+      "predicted": "B",
+      "gold": "B",
+      "correct": true,
+      "latency_ms": 9501
+    },
+    {
+      "task": "medqa",
+      "id": "0009",
+      "predicted": "A",
+      "gold": "A",
+      "correct": true,
+      "latency_ms": 6473
+    },
+    {
+      "task": "medqa",
+      "id": "0010",
+      "predicted": "D",
+      "gold": "D",
+      "correct": true,
+      "latency_ms": 9266
+    },
+    {
+      "task": "medqa",
+      "id": "0011",
+      "predicted": "D",
+      "gold": "D",
+      "correct": true,
+      "latency_ms": 12010
+    },
+    {
+      "task": "medqa",
+      "id": "0012",
+      "predicted": "B",
+      "gold": "B",
+      "correct": true,
+      "latency_ms": 7694
+    },
+    {
+      "task": "medqa",
+      "id": "0013",
+      "predicted": "A",
+      "gold": "D",
+      "correct": false,
+      "latency_ms": 13541
+    },
+    {
+      "task": "medqa",
+      "id": "0014",
+      "predicted": "D",
+      "gold": "C",
+      "correct": false,
+      "latency_ms": 25224
+    },
+    {
+      "task": "medqa",
+      "id": "0015",
+      "predicted": "A",
+      "gold": "B",
+      "correct": false,
+      "latency_ms": 12238
+    },
+    {
+      "task": "medqa",
+      "id": "0016",
+      "predicted": "C",
+      "gold": "D",
+      "correct": false,
+      "latency_ms": 2092
+    },
+    {
+      "task": "medqa",
+      "id": "0017",
+      "predicted": "D",
+      "gold": "D",
+      "correct": true,
+      "latency_ms": 11649
+    },
+    {
+      "task": "medqa",
+      "id": "0018",
+      "predicted": "B",
+      "gold": "B",
+      "correct": true,
+      "latency_ms": 12635
+    },
+    {
+      "task": "medqa",
+      "id": "0019",
+      "predicted": "B",
+      "gold": "D",
+      "correct": false,
+      "latency_ms": 10146
+    },
+    {
+      "task": "medqa",
+      "id": "0020",
+      "predicted": "D",
+      "gold": "C",
+      "correct": false,
+      "latency_ms": 11601
+    },
+    {
+      "task": "medqa",
+      "id": "0021",
+      "predicted": "A",
+      "gold": "A",
+      "correct": true,
+      "latency_ms": 8211
+    },
+    {
+      "task": "medqa",
+      "id": "0022",
+      "predicted": "D",
+      "gold": "C",
+      "correct": false,
+      "latency_ms": 23342
+    },
+    {
+      "task": "medqa",
+      "id": "0023",
+      "predicted": "A",
+      "gold": "D",
+      "correct": false,
+      "latency_ms": 9486
+    },
+    {
+      "task": "medqa",
+      "id": "0024",
+      "predicted": "A",
+      "gold": "A",
+      "correct": true,
+      "latency_ms": 1888
+    },
+    {
+      "task": "medqa",
+      "id": "0025",
+      "predicted": "D",
+      "gold": "D",
+      "correct": true,
+      "latency_ms": 19467
+    },
+    {
+      "task": "medqa",
+      "id": "0026",
+      "predicted": "D",
+      "gold": "D",
+      "correct": true,
+      "latency_ms": 10242
+    },
+    {
+      "task": "medqa",
+      "id": "0027",
+      "predicted": "A",
+      "gold": "A",
+      "correct": true,
+      "latency_ms": 9816
+    },
+    {
+      "task": "medqa",
+      "id": "0028",
+      "predicted": "D",
+      "gold": "D",
+      "correct": true,
+      "latency_ms": 2514
+    },
+    {
+      "task": "medqa",
+      "id": "0029",
+      "predicted": "C",
+      "gold": "C",
+      "correct": true,
+      "latency_ms": 20313
+    },
+    {
+      "task": "medmcqa",
+      "id": "45258d3d-b974-44dd-a161-c3fccbdadd88",
+      "predicted": "B",
+      "gold": "A",
+      "correct": false,
+      "latency_ms": 7941
+    },
+    {
+      "task": "medmcqa",
+      "id": "b944ada9-d776-4c2a-9180-3ae5f393f72d",
+      "predicted": "D",
+      "gold": "A",
+      "correct": false,
+      "latency_ms": 11931
+    },
+    {
+      "task": "medmcqa",
+      "id": "b64a9cd7-d076-4c55-8be1-f9c44fece6cc",
+      "predicted": "C",
+      "gold": "C",
+      "correct": true,
+      "latency_ms": 2401
+    },
+    {
+      "task": "medmcqa",
+      "id": "c6365cce-507c-40f6-90a2-46b867f47b6e",
+      "predicted": "C",
+      "gold": "C",
+      "correct": true,
+      "latency_ms": 23401
+    },
+    {
+      "task": "medmcqa",
+      "id": "72c1c5e0-b64f-4eef-bf22-ecfb60c5c19c",
+      "predicted": "B",
+      "gold": "A",
+      "correct": false,
+      "latency_ms": 10913
+    },
+    {
+      "task": "medmcqa",
+      "id": "17360c6c-2c98-4fe2-aa85-487dcf4678df",
+      "predicted": "A",
+      "gold": "A",
+      "correct": true,
+      "latency_ms": 2460
+    },
+    {
+      "task": "medmcqa",
+      "id": "62fa6f78-1964-4249-974b-6fcbbd7fc9ba",
+      "predicted": "A",
+      "gold": "A",
+      "correct": true,
+      "latency_ms": 16176
+    },
+    {
+      "task": "medmcqa",
+      "id": "ce49098b-cc48-4168-859e-936e3e0c7459",
+      "predicted": "A",
+      "gold": "B",
+      "correct": false,
+      "latency_ms": 2009
+    },
+    {
+      "task": "medmcqa",
+      "id": "18d5c4a1-cb81-41a8-9bfc-b6f7dec431d2",
+      "predicted": "A",
+      "gold": "B",
+      "correct": false,
+      "latency_ms": 17063
+    },
+    {
+      "task": "medmcqa",
+      "id": "de09d388-bd4e-42a9-ac6b-ee2d95f822e2",
+      "predicted": "D",
+      "gold": "B",
+      "correct": false,
+      "latency_ms": 1846
+    },
+    {
+      "task": "medmcqa",
+      "id": "384a9281-2ee1-480b-a7d8-fd3ef49558e5",
+      "predicted": "B",
+      "gold": "B",
+      "correct": true,
+      "latency_ms": 12377
+    },
+    {
+      "task": "medmcqa",
+      "id": "ae860b65-53a5-4547-b627-494174e15c3c",
+      "predicted": "D",
+      "gold": "A",
+      "correct": false,
+      "latency_ms": 9469
+    },
+    {
+      "task": "medmcqa",
+      "id": "84d89a4f-db04-402d-88ab-ca39f6eee8bd",
+      "predicted": "B",
+      "gold": "B",
+      "correct": true,
+      "latency_ms": 100300
+    },
+    {
+      "task": "medmcqa",
+      "id": "b1cc4ab0-a82c-437a-88c2-00953f3618ff",
+      "predicted": "A",
+      "gold": "A",
+      "correct": true,
+      "latency_ms": 1917
+    },
+    {
+      "task": "medmcqa",
+      "id": "f184a533-98b4-43ad-b1f5-70edc6704d9e",
+      "predicted": "D",
+      "gold": "A",
+      "correct": false,
+      "latency_ms": 22599
+    },
+    {
+      "task": "medmcqa",
+      "id": "26160738-1887-4252-86d4-1719a5a80bd3",
+      "predicted": "B",
+      "gold": "B",
+      "correct": true,
+      "latency_ms": 18508
+    },
+    {
+      "task": "medmcqa",
+      "id": "6ccd8adb-af24-4e58-82a1-9219dfa37057",
+      "predicted": "A",
+      "gold": "A",
+      "correct": true,
+      "latency_ms": 8912
+    },
+    {
+      "task": "medmcqa",
+      "id": "e38402c3-69bf-40a8-90c4-09277ca352eb",
+      "predicted": "D",
+      "gold": "D",
+      "correct": true,
+      "latency_ms": 21819
+    },
+    {
+      "task": "medmcqa",
+      "id": "9078aaca-bbfd-41cd-ad69-03057fca84ba",
+      "predicted": "A",
+      "gold": "A",
+      "correct": true,
+      "latency_ms": 9430
+    },
+    {
+      "task": "medmcqa",
+      "id": "ac6be140-880b-40c6-9855-01f30c8dd7b2",
+      "predicted": "D",
+      "gold": "A",
+      "correct": false,
+      "latency_ms": 2998
+    },
+    {
+      "task": "medmcqa",
+      "id": "7111d7b2-7e80-4e23-b5d0-9f42595c6a80",
+      "predicted": "B",
+      "gold": "B",
+      "correct": true,
+      "latency_ms": 12283
+    },
+    {
+      "task": "medmcqa",
+      "id": "406b5b4f-9ad4-42c0-9669-12d038df4ac8",
+      "predicted": "D",
+      "gold": "C",
+      "correct": false,
+      "latency_ms": 71366
+    },
+    {
+      "task": "medmcqa",
+      "id": "8d2e7fe2-3354-44c2-8cdf-55ff23caaebb",
+      "predicted": "A",
+      "gold": "A",
+      "correct": true,
+      "latency_ms": 9643
+    },
+    {
+      "task": "medmcqa",
+      "id": "7f0270fd-7d45-43ec-b77e-0038115bb845",
+      "predicted": "D",
+      "gold": "A",
+      "correct": false,
+      "latency_ms": 52935
+    },
+    {
+      "task": "medmcqa",
+      "id": "8b9a0e04-4281-418a-aa94-7414a325732f",
+      "predicted": "B",
+      "gold": "D",
+      "correct": false,
+      "latency_ms": 9339
+    },
+    {
+      "task": "medmcqa",
+      "id": "a3da135a-a6a2-4e1c-8823-8ab0913f5668",
+      "predicted": "B",
+      "gold": "B",
+      "correct": true,
+      "latency_ms": 1806
+    },
+    {
+      "task": "medmcqa",
+      "id": "7751b7ed-6aa4-4b9a-a03c-bb991a2936db",
+      "predicted": "D",
+      "gold": "A",
+      "correct": false,
+      "latency_ms": 31423
+    },
+    {
+      "task": "medmcqa",
+      "id": "159339f1-1545-47f6-9aad-47c1282458b4",
+      "predicted": "A",
+      "gold": "D",
+      "correct": false,
+      "latency_ms": 9724
+    },
+    {
+      "task": "medmcqa",
+      "id": "b6149b01-79a9-4d07-8cbc-828452b3906e",
+      "predicted": "A",
+      "gold": "A",
+      "correct": true,
+      "latency_ms": 67261
+    },
+    {
+      "task": "medmcqa",
+      "id": "f0f91922-12fd-4213-871c-19e47532a6d6",
+      "predicted": "C",
+      "gold": "C",
+      "correct": true,
+      "latency_ms": 18560
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-000",
+      "predicted": "A",
+      "gold": "A",
+      "correct": true,
+      "latency_ms": 1814
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-001",
+      "predicted": "B",
+      "gold": "B",
+      "correct": true,
+      "latency_ms": 10633
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-002",
+      "predicted": "A",
+      "gold": "A",
+      "correct": true,
+      "latency_ms": 46933
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-003",
+      "predicted": "B",
+      "gold": "C",
+      "correct": false,
+      "latency_ms": 18161
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-004",
+      "predicted": "B",
+      "gold": "B",
+      "correct": true,
+      "latency_ms": 23391
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-005",
+      "predicted": "A",
+      "gold": "B",
+      "correct": false,
+      "latency_ms": 18653
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-006",
+      "predicted": "A",
+      "gold": "A",
+      "correct": true,
+      "latency_ms": 2174
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-007",
+      "predicted": "B",
+      "gold": "B",
+      "correct": true,
+      "latency_ms": 18866
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-008",
+      "predicted": "C",
+      "gold": "C",
+      "correct": true,
+      "latency_ms": 10234
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-009",
+      "predicted": "D",
+      "gold": "D",
+      "correct": true,
+      "latency_ms": 10092
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-010",
+      "predicted": "B",
+      "gold": "D",
+      "correct": false,
+      "latency_ms": 23604
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-011",
+      "predicted": "B",
+      "gold": "D",
+      "correct": false,
+      "latency_ms": 8372
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-012",
+      "predicted": "D",
+      "gold": "D",
+      "correct": true,
+      "latency_ms": 10277
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-013",
+      "predicted": "D",
+      "gold": "B",
+      "correct": false,
+      "latency_ms": 16158
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-014",
+      "predicted": "A",
+      "gold": "A",
+      "correct": true,
+      "latency_ms": 2279
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-015",
+      "predicted": "C",
+      "gold": "C",
+      "correct": true,
+      "latency_ms": 10080
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-016",
+      "predicted": "D",
+      "gold": "B",
+      "correct": false,
+      "latency_ms": 12854
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-017",
+      "predicted": "D",
+      "gold": "D",
+      "correct": true,
+      "latency_ms": 9902
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-018",
+      "predicted": "D",
+      "gold": "D",
+      "correct": true,
+      "latency_ms": 19283
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-019",
+      "predicted": "C",
+      "gold": "C",
+      "correct": true,
+      "latency_ms": 1688
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-020",
+      "predicted": "C",
+      "gold": "C",
+      "correct": true,
+      "latency_ms": 10152
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-021",
+      "predicted": "C",
+      "gold": "C",
+      "correct": true,
+      "latency_ms": 91002
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-022",
+      "predicted": "C",
+      "gold": "B",
+      "correct": false,
+      "latency_ms": 1849
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-023",
+      "predicted": "C",
+      "gold": "B",
+      "correct": false,
+      "latency_ms": 23595
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-024",
+      "predicted": "D",
+      "gold": "B",
+      "correct": false,
+      "latency_ms": 1702
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-025",
+      "predicted": "A",
+      "gold": "C",
+      "correct": false,
+      "latency_ms": 20260
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-026",
+      "predicted": "C",
+      "gold": "C",
+      "correct": true,
+      "latency_ms": 1788
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-027",
+      "predicted": "D",
+      "gold": "A",
+      "correct": false,
+      "latency_ms": 15060
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-028",
+      "predicted": "C",
+      "gold": "C",
+      "correct": true,
+      "latency_ms": 8403
+    },
+    {
+      "task": "mmlu",
+      "id": "anatomy-029",
+      "predicted": "B",
+      "gold": "B",
+      "correct": true,
+      "latency_ms": 1898
+    }
+  ]
+}

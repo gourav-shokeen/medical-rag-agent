@@ -14,7 +14,7 @@ The point of this project isn't "chat with a PDF." It's that retrieval quality w
 The same agentic engine runs over two interchangeable corpora, selected by the `CORPUS` env var:
 
 - **`CORPUS=finance`** — SEC 10-K filings (AAPL, MSFT, NVDA), with company-aware routing. Index: `chroma_db/`.
-- **`CORPUS=medical`** (default) — ~125k pre-chunked snippets from [MedRAG/textbooks](https://huggingface.co/datasets/MedRAG/textbooks) (USMLE medical textbooks). No company logic; optional `source` filter. Index: `chroma_med/`.
+- **`CORPUS=medical`** (default) — **491,497** pre-chunked clinical snippets: **365,650** from StatPearls + **125,847** from [MedRAG/textbooks](https://huggingface.co/datasets/MedRAG/textbooks) (USMLE medical textbooks). No company logic; optional `source` filter. Index: `chroma_med/` (and a parallel `chroma_med_medcpt/` for the embedder ablation below).
 
 Everything else is shared: the LangGraph self-correcting loop, the cross-encoder reranker, the structured-output graders, the FastAPI/Next.js/Gradio surfaces. Only the corpus, retrieval routing, and node prompts change — the finance path is preserved exactly.
 
@@ -90,11 +90,78 @@ Two complementary layers, both scored by **one fixed judge** (Groq llama-3.3-70b
 - **`evals/run_eval.py`** — RAGAS (faithfulness, answer relevancy, context precision) over the golden set in `evals/golden/golden.jsonl`; writes timestamped JSON + CSV to `evals/results/`.
 - **`evals/test_quality.py`** — DeepEval regression gate on the `smoke: true` subset; runs in CI on every PR (`.github/workflows/eval.yml`). Thresholds (faithfulness ≥ 0.80, answer relevancy ≥ 0.75, hallucination ≤ 0.15) are deliberately below expected performance: the gate catches *regressions*, not perfection.
 
-| Metric (RAGAS, golden set) | Average |
+| Metric (RAGAS, finance golden set) | Average |
 |---|---|
-| Faithfulness | _TBD — fill from `evals/results/`_ |
-| Answer relevancy | _TBD_ |
-| Context precision | _TBD_ |
+| Faithfulness | _finance set not re-scored this round — see the medical results below_ |
+| Answer relevancy | _—_ |
+| Context precision | _—_ |
+
+## Medical corpus — MIRAGE benchmark & MedCPT ablation
+
+The medical corpus (491,497 snippets, [composition above](#two-corpora-one-engine-corpus-env)) is evaluated end-to-end through the same agent. Two indexes hold the **identical** snippet set and metadata; only the embedding model differs, so `RETRIEVER=general|medcpt` isolates the embedder for a clean ablation.
+
+| Index | Embedder | Vectors |
+|---|---|---|
+| `chroma_med/` | `nomic-embed-text-v1.5` (general) | 491,497 (StatPearls 365,650 · Textbooks 125,847) |
+| `chroma_med_medcpt/` | `ncbi/MedCPT-Article-Encoder` (domain) | 491,497 (same snippets + metadata) |
+
+### MIRAGE exam accuracy (the headline)
+
+[MIRAGE](https://github.com/Teddy-XiongGZ/MIRAGE) MCQ accuracy on the three tasks this corpus actually covers — **MMLU-Med, MedQA-US, MedMCQA** — run through the agent in MCQ mode (`run_agent(..., options=..., choice_only=True)`), 30 questions/task, agent = Groq `llama-3.1-8b-instant`, identical settings across the two retrievers:
+
+| Task | general (nomic) | MedCPT | Δ (MedCPT − general) |
+|---|---|---|---|
+| MMLU-Med | **70.00** | 63.33 | −6.67 |
+| MedQA-US | **60.00** | 56.67 | −3.33 |
+| MedMCQA | **56.67** | 53.33 | −3.34 |
+| **Exam mean** | **62.22** | 57.78 | **−4.44** |
+
+Published RAG baselines for orientation (from the MedRAG paper — **full MedCorp incl. PubMed + a different/larger generator, so NOT a head-to-head**, treat as a yardstick only): GPT-4 ≈ 79.97, GPT-3.5 ≈ 71.56, Llama2-70B ≈ 53.38. A 7-8B agent on a textbooks+StatPearls subset landing at **62.2** exam-mean sits sensibly between the Llama2-70B and GPT-3.5 reference points.
+
+### The MedCPT ablation finding (honest, and not what I expected)
+
+The domain-specific MedCPT encoder **lost** to the general-purpose nomic encoder by **4.44 exam-mean points** — even though MedCPT was built for biomedical retrieval. A retrieval-only probe (`evals/retrieval_ablation.py`, no LLM, 34 questions) explains why:
+
+| Signal (top-5, reranked) | general | MedCPT | Δ |
+|---|---|---|---|
+| StatPearls hit-rate | 0.665 | **0.771** | +0.106 |
+| ms-marco rerank score (mean) | **0.817** | −1.023 | −1.840 |
+
+MedCPT surfaces **more** StatPearls clinical content (+0.106 hit-rate), but the general-domain cross-encoder reranker — and the downstream MCQ accuracy — both strongly prefer nomic's passages. The lesson: a domain encoder upstream doesn't help if the reranker and generator downstream are general-domain; the pipeline rewards *alignment* across stages more than per-stage domain specialization. A genuinely domain-matched stack would pair MedCPT with a biomedical reranker — out of scope here, but the measured negative result is kept honestly.
+
+**Engineering note (6 GB GTX 1660).** Building both 491k-vector indexes on a 6 GB consumer GPU drove the embedder choices. Observed operating points with length-bucketed dynamic batching:
+
+| Embedder | emb/sec | Peak VRAM |
+|---|---|---|
+| `nomic-embed-text-v1.5` | ~28–37 | 3.7–4.3 GB |
+| `MedCPT-Article-Encoder` | ~46–70 | 1.9–2.5 GB |
+
+MedCPT is the lighter/faster encoder (BERT CLS pooling, ~2× throughput at ~half the VRAM) — so the ablation's accuracy loss is *despite* a cheaper encoder, not because of a starved one. Pushing either toward the 6 GB ceiling was **slower**, not faster (the Windows driver silently pages over-allocations to system RAM); both settled at a lower-VRAM, higher-throughput point. Full build notes in `MORNING_REPORT.md`.
+
+### Research tasks (PubMedQA, BioASQ) — reported separately, expected low
+
+These two MIRAGE tasks need a **PubMed** corpus, which is **not ingested** here. They are **never folded into the exam headline** — shown only to be honest about the corpus boundary (general retriever, 30 q/task):
+
+| Task | Accuracy | Why |
+|---|---|---|
+| BioASQ-Y/N | 63.33 | yes/no format is partly guessable even without the source corpus |
+| PubMedQA | 46.67 | pure PubMed abstracts — the corpus genuinely lacks the evidence |
+
+PubMedQA dropping to ~47% (vs the 62.2 exam mean) is the expected signature of a missing corpus, not a pipeline regression.
+
+### RAGAS on the medical golden set (open-ended answers)
+
+RAGAS over the 14-question medical golden set (`evals/golden/golden_medical.jsonl`), fixed judge = Groq `llama-3.3-70b-versatile` @ temperature 0, agent answers from `llama-3.1-8b-instant`:
+
+| Metric (RAGAS, medical golden) | Average | n scored |
+|---|---|---|
+| Faithfulness | 0.793 | 6 |
+| Answer relevancy | 0.924 | 5 |
+| Context precision | 0.775 | 6 |
+
+> **Quota caveat (honest, not a bug).** The 70B judge is token-hungry (~16k tokens/row across the three metrics), and the **Groq free tier caps it at 100k tokens/day** — which is reached after ~6 rows. Rows 7–14 are checkpointed `null` and are **resumable after the daily reset** (the harness skips already-scored rows; the agent answers are fully cached, so no answers re-run). `answer_relevancy` is `null` on 2 rows because RAGAS requests `n=3` generations while Groq caps `n=1`. **DeepEval (`evals/test_quality.py`) uses the same 70B judge and is therefore blocked on the same daily limit** — it runs to completion once the judge quota resets. Resume both with the commands in `MORNING_REPORT.md`.
+
+Everything above is fully **resumable and quota-aware**: every Groq-dependent eval checkpoints per question, distinguishes a transient per-minute rate-limit (back off and retry) from a daily token-limit (checkpoint and exit cleanly), and prints the exact relaunch command on exit.
 
 ## Serving it
 
@@ -207,6 +274,14 @@ And for the agentic layer specifically:
 - **The golden set is ~12–15 questions.** Big enough to catch breakage, far too small for statistical claims.
 - **Cost is estimated**, not billed: token usage × published Groq per-token rates (configurable). Local Ollama runs report no cost because there is none to meter.
 - **The self-correction loop helps vague queries, not missing data.** If the filings genuinely lack the answer, the agent burns its 2 retries and refuses — that's the designed behavior, but it means retries aren't free for hopeless questions.
+
+And for the medical corpus / MIRAGE results specifically:
+
+- **MIRAGE here is a 30-question/task sample, not the full benchmark.** 30×3 = 90 exam questions per retriever is enough to rank the two embedders consistently (general beats MedCPT on all three tasks), but task-level accuracies carry a few points of sampling noise — read the *direction* of the ablation, not the third decimal.
+- **The baseline comparison is orientation, not a head-to-head.** Published baselines used the full MedCorp corpus (incl. PubMed) and larger generators; this runs a 7-8B agent over a textbooks+StatPearls subset. The numbers are positioned as a yardstick and labelled as such everywhere they appear.
+- **The agent model was chosen for quota, not peak accuracy.** MIRAGE answers come from `llama-3.1-8b-instant` (≈5× the free-tier daily token budget of 70B), so the exam-mean reflects an 8B generator — a 70B agent would likely score higher. The point of the run is the *embedder ablation* (general vs MedCPT, everything else held fixed), which the model choice doesn't bias.
+- **RAGAS medical scores are over 6 rows, not 14** — the Groq free-tier 70B daily token cap stopped scoring partway. They're real (fixed 70B judge, temperature 0) but thin; resumable after reset. DeepEval is blocked on the same cap.
+- **MedCPT lost the ablation, and that's reported as-is.** It would have been easy to bury a negative result for the fancier domain encoder; instead it's the centerpiece, with a retrieval-level explanation (stage misalignment) rather than a hand-wave.
 
 ## Repo layout
 
