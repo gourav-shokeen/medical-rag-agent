@@ -1,9 +1,8 @@
 """Per-corpus prompts, citations, and refusal strings for the agent graph.
 
 The graph STRUCTURE (nodes, reducer, hard caps, structured-output grading) is
-identical across corpora — only the domain-specific text differs. CORPUS selects
-the domain; the finance strings are kept byte-identical to the original graph so
-the finance path is an exact regression.
+held in agent/graph.py; only the domain-specific text lives here. CORPUS selects
+the domain.
 """
 
 import re
@@ -15,66 +14,6 @@ MED_FRAME = (
     "This is an educational summary of published references, not medical advice; "
     "it does not diagnose or recommend treatment for an individual — consult a clinician."
 )
-
-
-class FinanceDomain:
-    name = "finance"
-    refusal = "This information is not available in the filings."
-    refusal_pattern = re.compile(
-        r"information is not available in the (filings|passages|context|documents|provided)",
-        re.IGNORECASE,
-    )
-
-    def doc_tag(self, meta: dict) -> str:
-        return f"[{meta.get('company', 'UNKNOWN')}, {meta.get('source', '10-K')}]"
-
-    def route(self, question: str) -> dict:
-        from agent.retriever import detect_companies
-
-        companies = detect_companies(question)
-        company = ",".join(companies) if companies else None
-        label = company if company else "none (searching all filings)"
-        return {
-            "company": company,
-            "source_filter": None,
-            "step": f"Routed: detected company={label}, retrieval needed",
-        }
-
-    def rewrite_prompt(self, question: str) -> str:
-        return (
-            "Rewrite this question to retrieve better passages from SEC 10-K filings. "
-            "The corpus contains ONLY the 10-K filings of Apple (AAPL), Microsoft (MSFT) "
-            "and NVIDIA (NVDA) — if the question hints at one of them, name it explicitly. "
-            "Expand abbreviations and add likely 10-K section terms (e.g. 'Risk Factors', "
-            "\"Management's Discussion and Analysis\", 'net sales', 'segment'). "
-            "Return ONLY the rewritten question, nothing else.\n\n"
-            f"Question: {question}"
-        )
-
-    def generate_system(self) -> str:
-        return (
-            "You are a financial analyst assistant answering from SEC 10-K filings. "
-            "Answer using ONLY the provided passages. Cite each claim as "
-            "[Company, Section]. If the answer is not in the passages, respond exactly: "
-            f"'{self.refusal}' Do not use outside knowledge or guess. "
-            "Numbers inside tables in the passages count as available information — "
-            "when the passages contain the requested figures or facts, answer concisely "
-            "with them instead of refusing. Passages are excerpts and may come from any "
-            "section of a filing; judge them by their content, not by whether they name "
-            "a particular section. If the passages cover the question's topic but do not "
-            "mention a specific name or term used in the question, do not refuse — "
-            "answer with what the passages do state about that topic."
-        )
-
-    def mcq_system(self) -> str:
-        return (
-            "You are a financial analyst assistant. Using ONLY the provided passages, "
-            "choose the single best answer option. State the letter, then a one-line "
-            "rationale citing [Company, Section]."
-        )
-
-    def finalize(self, generation: str) -> str:
-        return generation
 
 
 class MedicalDomain:
@@ -146,5 +85,5 @@ class MedicalDomain:
         return f"{generation}\n\n{MED_FRAME}"
 
 
-_DOMAINS = {"finance": FinanceDomain, "medical": MedicalDomain}
+_DOMAINS = {"medical": MedicalDomain}
 DOMAIN = _DOMAINS[CORPUS]()

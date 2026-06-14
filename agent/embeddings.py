@@ -7,8 +7,7 @@ Two embedders, chosen by `kind`:
     queries (asymmetric, CLS pooling, normalized). Index: chroma_med_medcpt/.
 
 The retriever MUST embed queries with the SAME embedder the index was built with,
-or query and document vectors land in different spaces. Finance keeps its separate
-Ollama embedder.
+or query and document vectors land in different spaces.
 
 No fp16/.half() — this GTX 1660 has a weak fp16 path; fp32 throughout.
 """

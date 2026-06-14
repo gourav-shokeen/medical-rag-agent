@@ -1,7 +1,7 @@
-"""Loader for the golden eval set (evals/golden/golden.jsonl).
+"""Loader for the golden eval set (evals/golden/golden_medical.jsonl).
 
 Lines starting with // are comments. Each remaining line is one JSON object:
-{id, question, ground_truth, company, type: factual|synthesis|unanswerable, smoke: bool}
+{id, question, ground_truth, type: factual|synthesis|unanswerable, smoke: bool}
 """
 
 import json
@@ -9,12 +9,12 @@ import os
 from pathlib import Path
 from typing import List, Optional
 
-# default finance set; override with GOLDEN_PATH env (e.g. golden_medical.jsonl)
+# default medical set; override with GOLDEN_PATH env
 GOLDEN_PATH = Path(
-    os.getenv("GOLDEN_PATH", Path(__file__).resolve().parent / "golden" / "golden.jsonl")
+    os.getenv("GOLDEN_PATH", Path(__file__).resolve().parent / "golden" / "golden_medical.jsonl")
 )
 
-# `company` is finance-only and optional (medical rows omit it)
+# `company` is optional and unused by the medical set (rows omit it)
 REQUIRED_KEYS = {"id", "question", "ground_truth", "type", "smoke"}
 VALID_TYPES = {"factual", "synthesis", "unanswerable"}
 

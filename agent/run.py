@@ -7,8 +7,8 @@ import sys
 
 def main() -> None:
     logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(message)s")
-    parser = argparse.ArgumentParser(description="Ask the agentic 10-K RAG a question")
-    parser.add_argument("question", help="Question about the indexed SEC 10-K filings")
+    parser = argparse.ArgumentParser(description="Ask the medical RAG agent a question")
+    parser.add_argument("question", help="A medical question to answer from the indexed references")
     args = parser.parse_args()
 
     from agent.graph import run_agent  # import after arg parsing: model load is slow

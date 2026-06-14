@@ -21,7 +21,7 @@ load_dotenv()
 PRICE_IN_PER_M = float(os.getenv("PRICE_INPUT_PER_MTOK", "0.59"))
 PRICE_OUT_PER_M = float(os.getenv("PRICE_OUTPUT_PER_MTOK", "0.79"))
 
-app = FastAPI(title="rag-finance agent API")
+app = FastAPI(title="medical-rag agent API")
 
 app.add_middleware(
     CORSMiddleware,

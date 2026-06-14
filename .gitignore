@@ -17,6 +17,8 @@ chroma_fast_test/
 corpus/
 .venv/
 .env
+.env.local
+.env.*.local
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
@@ -28,6 +30,11 @@ evals/mirage/results/
 .deepeval_telemetry.txt
 deepeval-cache.json
 temp_test_run_data.json
+
+# logs & scratch output
+logs/
+*.log
+*.out
 
 # frontend
 node_modules/

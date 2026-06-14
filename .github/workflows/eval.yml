@@ -26,14 +26,14 @@ jobs:
             pydantic==2.13.4 "python-dotenv>=1.2.2" "sentence-transformers>=5.5.1" \
             ragas==0.4.3 deepeval==4.0.6 pytest==9.0.3
 
-      # NOTE: the smoke gate needs the persisted chroma_db/ index and a local
-      # query embedder. chroma_db is not in git (too large); restore it from a
+      # NOTE: the smoke gate needs the persisted chroma_med/ index and a local
+      # query embedder. chroma_med is not in git (too large); restore it from a
       # release artifact or LFS before this step, or the run will be skipped.
       - name: Check index present
         id: index
         run: |
-          if [ -d chroma_db ]; then echo "present=true" >> "$GITHUB_OUTPUT"; \
-          else echo "present=false" >> "$GITHUB_OUTPUT"; echo "chroma_db/ missing — smoke evals skipped"; fi
+          if [ -d chroma_med ]; then echo "present=true" >> "$GITHUB_OUTPUT"; \
+          else echo "present=false" >> "$GITHUB_OUTPUT"; echo "chroma_med/ missing — smoke evals skipped"; fi
 
       # Query embeddings use local Ollama nomic-embed-text (the index was built
       # with it — a different embedder would be dimension-incompatible).

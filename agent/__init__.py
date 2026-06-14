@@ -1,1 +1,1 @@
-"""Agentic layer (LangGraph) on top of the existing SEC 10-K RAG retriever."""
+"""Agentic layer (LangGraph) on top of the medical RAG retriever."""

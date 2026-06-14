@@ -26,9 +26,58 @@ JUDGE_PROVIDER = os.getenv("JUDGE_PROVIDER", "groq")
 JUDGE_MODEL = os.getenv("JUDGE_MODEL", "llama-3.3-70b-versatile")
 _EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
+# Gemini judge: an alternative fixed judge used to complete rows the Groq 70B
+# judge couldn't (its daily TPD ran out mid-set). Resolved once, lazily, trying
+# the newest free-tier flash model first and falling back. Build the LangChain
+# object DIRECTLY here (not via agent/llm_provider.py) to keep the agent's own
+# LLM wiring untouched.
+_GEMINI_FALLBACKS = ("gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash")
+_GEMINI_MODEL = None  # cached resolved model id
+
+
+def _gemini_key():
+    return os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+
+
+def resolve_gemini_model():
+    """Pick the first Gemini flash model whose key+model actually answer.
+
+    Returns the model id (and caches it). Raises RuntimeError with the exact
+    underlying error if no model loads, so the caller can STOP rather than spin.
+    """
+    global _GEMINI_MODEL
+    if _GEMINI_MODEL:
+        return _GEMINI_MODEL
+    from langchain_google_genai import ChatGoogleGenerativeAI
+
+    key = _gemini_key()
+    if not key:
+        raise RuntimeError("No GOOGLE_API_KEY / GEMINI_API_KEY in environment")
+    override = os.getenv("JUDGE_GEMINI_MODEL")
+    candidates = (override,) + _GEMINI_FALLBACKS if override else _GEMINI_FALLBACKS
+    last = None
+    for m in candidates:
+        try:
+            llm = ChatGoogleGenerativeAI(model=m, temperature=0, google_api_key=key)
+            llm.invoke("Reply with the single word OK")
+            _GEMINI_MODEL = m
+            print(f"[judge] Gemini model loaded: {m}")
+            return m
+        except Exception as exc:  # noqa: BLE001
+            last = exc
+            print(f"[judge] Gemini model {m} unavailable: {str(exc)[:120]}")
+    raise RuntimeError(f"Gemini key failed on all models; last error: {last}")
+
 
 def get_judge_llm():
     """The one judge chat model (LangChain object, temperature 0)."""
+    if JUDGE_PROVIDER == "gemini":
+        from langchain_google_genai import ChatGoogleGenerativeAI
+
+        return ChatGoogleGenerativeAI(
+            model=resolve_gemini_model(), temperature=0,
+            google_api_key=_gemini_key(),
+        )
     model = JUDGE_MODEL if JUDGE_PROVIDER == "groq" else None
     return get_llm(temperature=0, provider=JUDGE_PROVIDER, model=model)
 
@@ -61,7 +110,7 @@ def get_deepeval_model():
 
     class GroqJudge(DeepEvalBaseLLM):
         def __init__(self):
-            super().__init__(model="rag-finance-judge")
+            super().__init__(model="medical-rag-judge")
 
         def load_model(self):
             return get_judge_llm()

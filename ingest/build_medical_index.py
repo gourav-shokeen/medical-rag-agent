@@ -8,8 +8,8 @@ Sources:
     pass --statpearls-dir pointing at its chunk/*.jsonl output and they are
     ingested with source="statpearls".
 
-Embeddings: the SAME model as the finance index (Ollama nomic-embed-text), so
-the agent's query embedder stays identical across corpora.
+Embeddings: Ollama nomic-embed-text, so the index and the agent's query
+embedder use exactly the same model.
 
 Properties: batched (one embed call per batch), resumable (picks up at
 collection.count(); ids are deterministic and writes are upserts, so overlap is

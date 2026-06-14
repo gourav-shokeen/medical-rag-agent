@@ -1,6 +1,6 @@
 ---
-title: rag-finance API
-emoji: 📊
+title: medical-rag API
+emoji: 🩺
 colorFrom: green
 colorTo: gray
 sdk: docker
@@ -8,9 +8,9 @@ app_port: 7860
 pinned: false
 ---
 
-# rag-finance agent API
+# medical-rag agent API
 
-FastAPI backend for the agentic SEC 10-K RAG. See the main repo for docs.
+FastAPI backend for the agentic medical RAG. See the main repo for docs.
 
 Endpoints: `POST /ask {"question": "..."}` · `GET /health`
 

@@ -47,6 +47,9 @@ from evals.mirage.run_mirage import (  # noqa: E402
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 ANSWERS_PATH = RESULTS_DIR / "eval_answers_progress.jsonl"
 SCORES_PATH = RESULTS_DIR / "eval_scores_progress.jsonl"
+# Combined, judge-tagged RAGAS results: groq-70b rows migrated untouched + the
+# rows the 70B judge couldn't finish, completed with the Gemini judge.
+RESULTS_RAGAS_PATH = RESULTS_DIR / "results_ragas.jsonl"
 METRIC_KEYS = ("faithfulness", "answer_relevancy", "context_precision")
 
 
@@ -107,7 +110,7 @@ def collect_agent_runs(rows):
                 out = _call_with_backoff(lambda: run_agent(row["question"]))
                 rec = {
                     "id": row["id"], "type": row["type"],
-                    "company": row.get("company"),  # finance-only; medical omits it
+                    "company": row.get("company"),  # optional; medical rows omit it
                     "user_input": row["question"],
                     "retrieved_contexts": out["contexts"],
                     "response": out["answer"],
@@ -211,6 +214,143 @@ def score_with_ragas(answers):
             if a["id"] in done and _is_real(done[a["id"]])}
 
 
+def _load_results_ragas():
+    """Existing combined results -> {id: record} (record has a 'judge' tag)."""
+    out = {}
+    if RESULTS_RAGAS_PATH.exists():
+        for line in RESULTS_RAGAS_PATH.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                r = json.loads(line)
+                out[r["id"]] = r
+    return out
+
+
+def _all_three(rec):
+    return all(rec.get(m) is not None for m in METRIC_KEYS)
+
+
+def migrate_groq_judged():
+    """Copy fully-judged (all 3 non-null) rows from the 70B-judge score cache into
+    results_ragas.jsonl, tagged judge='groq-70b'. Never re-scores; tag only."""
+    existing = _load_results_ragas()
+    src = _load_jsonl(SCORES_PATH)
+    added = 0
+    with RESULTS_RAGAS_PATH.open("a", encoding="utf-8") as f:
+        for rid, rec in src.items():
+            if _all_three(rec) and rid not in existing:
+                row = {"id": rid, "judge": "groq-70b"}
+                row.update({m: rec[m] for m in METRIC_KEYS})
+                f.write(json.dumps(row) + "\n")
+                existing[rid] = row
+                added += 1
+    print(f"Migrated {added} groq-70b row(s); results_ragas now has "
+          f"{len(existing)} row(s).")
+    return existing
+
+
+def complete_with_gemini(rows):
+    """Judge ONLY the unjudged golden ids with the Gemini judge, append to
+    results_ragas.jsonl tagged judge='gemini-<model>'. Reuses the cached 8b
+    answers (they ARE Groq llama-3.1-8b-instant temp-0 outputs); falls back to a
+    live run_agent for any id missing from the cache. Retries up to 3x on any
+    null metric so no null is ever persisted."""
+    from ragas import EvaluationDataset, evaluate
+    from ragas.metrics._answer_relevance import answer_relevancy
+    from ragas.metrics._context_precision import context_precision
+    from ragas.metrics._faithfulness import faithfulness
+    from ragas.run_config import RunConfig
+
+    from evals.judge import get_ragas_embeddings, get_ragas_llm, resolve_gemini_model
+
+    model = resolve_gemini_model()  # raises (STOP) if the key fails
+    judge_tag = model if model.startswith("gemini") else f"gemini-{model}"
+
+    existing = migrate_groq_judged()
+    answers = _load_jsonl(ANSWERS_PATH)
+
+    # unjudged = golden ids without a fully-judged row in results_ragas
+    unjudged = [r for r in rows if not _all_three(existing.get(r["id"], {}))]
+    print(f"Unjudged set ({len(unjudged)}): {[r['id'] for r in unjudged]}")
+    if not unjudged:
+        return existing
+
+    # RAGAS answer_relevancy asks for n=3 generations; Groq/Gemini judge here is
+    # invoked with n=1, so strictness=1 avoids the BadRequest/None that n=3 causes.
+    answer_relevancy.strictness = 1
+
+    llm, embeddings = get_ragas_llm(), get_ragas_embeddings()
+    metrics = [faithfulness, answer_relevancy, context_precision]
+    run_config = RunConfig(timeout=300, max_workers=1)
+
+    def _answer_for(row):
+        a = answers.get(row["id"])
+        if a:
+            return a["retrieved_contexts"], a["response"], a["reference"]
+        from agent.graph import run_agent
+        out = _call_with_backoff(lambda: run_agent(row["question"]))
+        return out["contexts"], out["answer"], row["ground_truth"]
+
+    with RESULTS_RAGAS_PATH.open("a", encoding="utf-8") as f:
+        for i, row in enumerate(unjudged, 1):
+            rid = row["id"]
+            print(f"[gemini-judge {i}/{len(unjudged)}] {rid}")
+            ctx, resp, ref = _answer_for(row)
+            rec = {"user_input": row["question"], "retrieved_contexts": ctx,
+                   "response": resp, "reference": ref}
+
+            scored = None
+            for attempt in range(3):
+                def _do():
+                    ds = EvaluationDataset.from_list([rec])
+                    res = evaluate(dataset=ds, metrics=metrics, llm=llm,
+                                   embeddings=embeddings, run_config=run_config)
+                    return res.to_pandas()
+
+                df = _call_with_backoff(_do)
+                s = df.iloc[0]
+                cand = {"id": rid, "judge": judge_tag}
+                for m in METRIC_KEYS:
+                    v = s[m] if m in df.columns else None
+                    cand[m] = (None if v is None or (isinstance(v, float) and math.isnan(v))
+                               else round(float(v), 4))
+                if _all_three(cand):
+                    scored = cand
+                    break
+                wait = 20 + attempt * 20
+                print(f"    null metric (attempt {attempt + 1}); retrying in {wait}s...",
+                      flush=True)
+                time.sleep(wait)
+
+            if scored is None:
+                # last resort: keep retrying the still-null metrics individually
+                scored = cand
+                for m in METRIC_KEYS:
+                    metric_one = {"faithfulness": faithfulness,
+                                  "answer_relevancy": answer_relevancy,
+                                  "context_precision": context_precision}[m]
+                    tries = 0
+                    while scored[m] is None and tries < 3:
+                        tries += 1
+                        df = _call_with_backoff(lambda: evaluate(
+                            dataset=EvaluationDataset.from_list([rec]),
+                            metrics=[metric_one], llm=llm, embeddings=embeddings,
+                            run_config=run_config).to_pandas())
+                        v = df.iloc[0][m] if m in df.columns else None
+                        if v is not None and not (isinstance(v, float) and math.isnan(v)):
+                            scored[m] = round(float(v), 4)
+                        else:
+                            time.sleep(20)
+
+            f.write(json.dumps(scored) + "\n")
+            f.flush()
+            existing[rid] = scored
+            print("    " + "  ".join(f"{m}={scored[m]}" for m in METRIC_KEYS))
+            # pace rows to stay under Gemini free-tier per-minute request/token caps
+            if i < len(unjudged):
+                time.sleep(10)
+    return existing
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--smoke-only", action="store_true")
@@ -218,6 +358,15 @@ def main():
 
     from evals.judge import JUDGE_MODEL, JUDGE_PROVIDER
     from evals.load_golden import load_golden
+
+    # Gemini judge path: complete the rows the 70B judge couldn't finish, writing
+    # the combined judge-tagged results_ragas.jsonl. (groq path unchanged below.)
+    if JUDGE_PROVIDER == "gemini":
+        rows = load_golden(smoke_only=args.smoke_only)
+        print(f"Golden rows: {len(rows)} | judge: gemini\n")
+        results = complete_with_gemini(rows)
+        print(f"\nresults_ragas.jsonl now has {len(results)} judged row(s).")
+        return
 
     rows = load_golden(smoke_only=args.smoke_only)
     print(f"Golden rows: {len(rows)} | judge: {JUDGE_PROVIDER}/{JUDGE_MODEL}\n")

@@ -1,7 +1,7 @@
-"""Corpus selection: CORPUS env = "medical" (default) | "finance".
+"""Corpus + retriever selection for the medical RAG agent.
 
-The finance Chroma index (chroma_db/) is untouched; the medical index lives in
-its own directory + collection so the two coexist.
+The medical index lives in its own directory + collection; RETRIEVER selects the
+bi-encoder (general nomic vs MedCPT) and its matching index for the ablation.
 """
 
 import os
@@ -13,19 +13,18 @@ load_dotenv()
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-VALID_CORPORA = ("medical", "finance")
+VALID_CORPORA = ("medical",)
 
 CORPUS = os.getenv("CORPUS", "medical").strip().lower()
 if CORPUS not in VALID_CORPORA:
     raise ValueError(f"CORPUS must be one of {VALID_CORPORA}, got {CORPUS!r}")
 
-FINANCE_CHROMA_DIR = REPO_ROOT / "chroma_db"
 # medical dir/collection are env-overridable so a throwaway index can be used
 # (e.g. for smoke tests) without disturbing the main build
 MEDICAL_CHROMA_DIR = Path(os.getenv("MEDICAL_CHROMA_DIR", REPO_ROOT / "chroma_med"))
 MEDICAL_COLLECTION = os.getenv("MEDICAL_COLLECTION", "medical")
 
-# finance index query embedder (Ollama)
+# index-builder query embedder (Ollama nomic-embed-text)
 EMBEDDING_MODEL = "nomic-embed-text"
 
 # RETRIEVER selects the medical bi-encoder + its index, for the MedCPT ablation.

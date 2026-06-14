@@ -1,7 +1,7 @@
 [project]
-name = "rag-finance"
+name = "medical-rag-agent"
 version = "0.1.0"
-description = "Add your description here"
+description = "Self-correcting agentic RAG over a medical reference corpus (StatPearls + USMLE textbooks)"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

@@ -12,21 +12,21 @@ reindexing). Generation uses Groq — no heavy chat model in the container.
 
 ```bash
 # 1. Create the Space (type: Docker) — once
-#    https://huggingface.co/new-space  → SDK: Docker → name: rag-finance-api
+#    https://huggingface.co/new-space  → SDK: Docker → name: medical-rag-api
 
 # 2. Clone it next to this repo
-git clone https://huggingface.co/spaces/<your-user>/rag-finance-api hf-space
+git clone https://huggingface.co/spaces/<your-user>/medical-rag-api hf-space
 cd hf-space
 
 # 3. Copy the backend pieces from this repo
-cp -r ../rag_finance/{Dockerfile,requirements-docker.txt,agent,app} .
-cp ../rag_finance/deploy/hf-space-README.md README.md   # Space front-matter lives here
+cp -r ../medical-rag-agent/{Dockerfile,requirements-docker.txt,agent,app} .
+cp ../medical-rag-agent/deploy/hf-space-README.md README.md   # Space front-matter lives here
 
 # 4. The Chroma index is too big for plain git — use LFS
 huggingface-cli lfs-enable-largefiles .
-cp -r ../rag_finance/chroma_db .
-git lfs track "chroma_db/**"
-git add .gitattributes . && git commit -m "Deploy rag-finance API" && git push
+cp -r ../medical-rag-agent/chroma_med .
+git lfs track "chroma_med/**"
+git add .gitattributes . && git commit -m "Deploy medical-rag API" && git push
 
 # 5. In the Space settings:
 #    Secrets:   GROQ_API_KEY  (+ LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY / LANGFUSE_HOST if tracing)
@@ -34,7 +34,7 @@ git add .gitattributes . && git commit -m "Deploy rag-finance API" && git push
 #               FRONTEND_ORIGIN=https://<your-frontend>.vercel.app
 
 # 6. Smoke test once it builds
-curl https://<your-user>-rag-finance-api.hf.space/health
+curl https://<your-user>-medical-rag-api.hf.space/health
 ```
 
 ## Frontend → Vercel
@@ -46,7 +46,7 @@ cd frontend
 npm i -g vercel        # or use the Vercel dashboard import flow
 vercel                 # link / create the project (root = frontend/)
 vercel env add NEXT_PUBLIC_API_BASE_URL production
-#   value: https://<your-user>-rag-finance-api.hf.space
+#   value: https://<your-user>-medical-rag-api.hf.space
 vercel --prod
 ```
 

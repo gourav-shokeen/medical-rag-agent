@@ -1,64 +1,19 @@
-"""SmartRetriever over the active corpus (CORPUS env), extracted from rag.ipynb.
+"""Retriever over the medical corpus (CORPUS env).
 
-Reuses a persisted Chroma index (nomic-embed-text embeddings) + the same ms-marco
-cross-encoder reranker. No re-chunking/re-indexing here.
+Reuses a persisted Chroma index (nomic-embed-text / MedCPT embeddings) + an
+ms-marco cross-encoder reranker. No re-chunking/re-indexing here.
 
-- finance: company detection -> per-company metadata filter -> top-20 -> rerank top-5
-- medical: NO company logic; vector top-20 -> rerank top-5, optional `source` filter
+- medical: vector top-20 -> rerank top-5, with an optional `source` filter.
 
-Return type (both): list[langchain_core.documents.Document] with .page_content +
-.metadata (finance: company/source/file; medical: source/title/snippet_id).
+Return type: list[langchain_core.documents.Document] with .page_content +
+.metadata (source/title/snippet_id).
 """
 
 from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langchain_chroma import Chroma
 from langchain_community.cross_encoders import HuggingFaceCrossEncoder
-from langchain_ollama import OllamaEmbeddings
 
-from agent.config import (
-    CORPUS,
-    EMBEDDING_MODEL,
-    FINANCE_CHROMA_DIR,
-    MEDICAL_CHROMA_DIR,
-    MEDICAL_COLLECTION,
-)
-
-# kept module-level for backwards-compat (finance domain + tests import this)
-COMPANY_ALIASES = {
-    "AAPL": ["apple", "aapl"],
-    "MSFT": ["microsoft", "msft", "azure"],
-    "NVDA": ["nvidia", "nvda"],
-}
-
-
-def detect_companies(q):
-    ql = q.lower()
-    return [t for t, aliases in COMPANY_ALIASES.items() if any(a in ql for a in aliases)]
-
-
-class SmartRetriever:
-    """Finance corpus: company-aware retrieval (original behavior, unchanged)."""
-
-    def __init__(self, vectorstore, reranker, k=20):
-        self.vectorstore = vectorstore
-        self.reranker = reranker
-        self.k = k
-
-    def invoke(self, query, source=None):  # source ignored (finance has no source filter)
-        companies = detect_companies(query)
-        if len(companies) == 0:
-            candidates = self.vectorstore.as_retriever(
-                search_kwargs={"k": self.k}
-            ).invoke(query)
-        else:
-            candidates = []
-            per_company_k = max(self.k // len(companies), 8)
-            for c in companies:
-                hits = self.vectorstore.as_retriever(
-                    search_kwargs={"k": per_company_k, "filter": {"company": c}}
-                ).invoke(query)
-                candidates.extend(hits)
-        return self.reranker.compress_documents(candidates, query)
+from agent.config import CORPUS
 
 
 class MedicalRetriever:
@@ -112,19 +67,5 @@ def get_retriever():
         )
         _retriever = MedicalRetriever(vectorstore, _build_reranker(), k=20)
     else:
-        if not FINANCE_CHROMA_DIR.exists():
-            raise FileNotFoundError(
-                f"Finance index not found at {FINANCE_CHROMA_DIR}. "
-                "Run the indexing cells in rag.ipynb first."
-            )
-        vectorstore = Chroma(
-            persist_directory=str(FINANCE_CHROMA_DIR),
-            embedding_function=OllamaEmbeddings(model=EMBEDDING_MODEL),
-        )
-        _retriever = SmartRetriever(vectorstore, _build_reranker(), k=20)
+        raise ValueError(f"Unsupported CORPUS={CORPUS!r}; expected 'medical'.")
     return _retriever
-
-
-# backwards-compatible alias (finance code/tests referenced this name)
-def get_smart_retriever():
-    return get_retriever()

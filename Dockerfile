@@ -6,7 +6,7 @@
 #   - generation/grading LLM: set LLM_PROVIDER=groq + GROQ_API_KEY as Space
 #     secrets (running a local chat model in the Space is too heavy)
 #
-# The chroma_db/ index is COPYed from the build context. It is gitignored, so
+# The chroma_med/ index is COPYed from the build context. It is gitignored, so
 # for HF Spaces push it to the Space repo with Git LFS (see deploy/DEPLOY.md).
 
 FROM python:3.12-slim
@@ -35,7 +35,7 @@ RUN ollama serve & \
 
 COPY agent/ agent/
 COPY app/ app/
-COPY chroma_db/ chroma_db/
+COPY chroma_med/ chroma_med/
 
 # Pre-download the cross-encoder so first request doesn't hit the HF Hub
 RUN python -c "from langchain_community.cross_encoders import HuggingFaceCrossEncoder; \
