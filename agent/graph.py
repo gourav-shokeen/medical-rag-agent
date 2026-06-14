@@ -115,6 +115,13 @@ def grade_documents(state: AgentState) -> dict:
             "docs_sufficient": False,
             "reasoning_steps": ["Doc grade: no — no passages retrieved"],
         }
+    if state.get("options"):
+        # MCQ mode: the answer is among the options, so skip the LLM doc-grade +
+        # rewrite loop (saves a Groq call/question) and go straight to choosing
+        return {
+            "docs_sufficient": True,
+            "reasoning_steps": ["Doc grade: skipped (MCQ — proceeding to choose)"],
+        }
     grade = _grade(
         "You are grading whether the retrieved passages contain enough information "
         f"to answer the user's question. Question: {state['question']}. "

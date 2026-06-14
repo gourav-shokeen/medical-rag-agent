@@ -10,8 +10,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Current Groq Llama-3.x 70B model. If Groq retires it, swap here and note in README.
-GROQ_MODEL = "llama-3.3-70b-versatile"
+# Default Groq model (Llama-3.x 70B). Override with GROQ_MODEL env — e.g. the
+# benchmark uses llama-3.1-8b-instant, which has ~5x the free-tier daily token
+# budget (500k vs 100k), to fit more questions before quota.
+DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
 DEFAULT_OLLAMA_MODEL = "llama3.1:8b"
 
 VALID_PROVIDERS = ("ollama", "groq")
@@ -39,7 +41,10 @@ def get_llm(temperature: float = 0, provider: str | None = None):
             )
         from langchain_groq import ChatGroq
 
-        return ChatGroq(model=GROQ_MODEL, temperature=temperature)
+        model = os.getenv("GROQ_MODEL", DEFAULT_GROQ_MODEL)
+        # max_retries=0: the eval harnesses handle quota/429 themselves (checkpoint
+        # + clean exit) rather than letting the client silently spin on retries
+        return ChatGroq(model=model, temperature=temperature, max_retries=0)
 
     from langchain_ollama import ChatOllama
 
