@@ -1,0 +1,9 @@
+STEP 3b — MIRAGE research tasks, general (nomic) retriever, 8b-instant agent, 30 q/task
+REPORT SEPARATELY: the corpus is textbooks + StatPearls only (NO PubMed), so these retrieve poorly by design.
+NEVER fold into the exam headline (MMLU/MedQA/MedMCQA).
+
+  pubmedqa  14/30  acc=46.67%
+  bioasq    19/30  acc=63.33%
+
+PubMedQA (pure PubMed abstracts) is the hardest hit; BioASQ yes/no is partly guessable.
+Exam tasks (same run, the headline): mmlu 70.0, medqa 60.0, medmcqa 56.67 -> exam-mean 62.22.
