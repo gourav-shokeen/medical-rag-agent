@@ -1,0 +1,10 @@
+Sample: 34 questions (golden answerable + MIRAGE exam)
+
+general   mean_rerank=0.8167 statpearls_hit_rate=0.665
+medcpt    mean_rerank=-1.0225 statpearls_hit_rate=0.771
+
+metric                         general    medcpt     delta
+mean_rerank_score               0.8167   -1.0225   -1.8392
+statpearls_hit_rate_top5        0.6647    0.7706   +0.1059
+
+Wrote E:\ai-projects\rag_finance\evals\results\retrieval_ablation.json
