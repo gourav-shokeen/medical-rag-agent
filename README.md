@@ -6,13 +6,8 @@ A self-correcting RAG agent that answers medical questions from **491,497 peer-r
 
 ## Demo
 
-<!-- To get an inline player on the repo page: open any issue in this repo, drag your
-     video file into the comment box, wait for it to upload, then copy the generated
-     https://github.com/user-attachments/assets/... URL and paste it on its own line
-     below (replacing PASTE_VIDEO_URL_HERE). GitHub renders a bare user-attachments
-     URL as a native inline video player. -->
 
-https://github.com/user-attachments/assets/b0d0c586-799d-4ec6-b763-5939f8a9c77
+https://github.com/user-attachments/assets/4a43ef8e-077b-4dc9-b645-b32c162051af
 
 Watch it grade its own evidence, rewrite a weak query, and answer with citations.
 
