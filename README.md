@@ -1,9 +1,57 @@
 # Medical Reference Agent
 
-A self-correcting, agentic RAG system over a 491k-snippet medical corpus (StatPearls + 18 USMLE textbooks). Ask a clinical question and the agent routes it, retrieves passages, grades whether they actually answer the question, generates a citation-grounded answer, and verifies that answer against its sources — repairing the query and retrying when retrieval comes up short, and refusing when the corpus can't support a claim.
+A self-correcting RAG agent that answers medical questions from **491,497 peer-reviewed clinical references** (StatPearls + USMLE textbooks), cites every claim, and refuses what it can't ground.
+
+> Educational summaries from published references — **not medical advice**. For personal symptoms, consult a clinician.
+
+## Demo
+
+<!-- To get an inline player on the repo page: open any issue in this repo, drag your
+     video file into the comment box, wait for it to upload, then copy the generated
+     https://github.com/user-attachments/assets/... URL and paste it on its own line
+     below (replacing PASTE_VIDEO_URL_HERE). GitHub renders a bare user-attachments
+     URL as a native inline video player. -->
+
+PASTE_VIDEO_URL_HERE
+
+Watch it grade its own evidence, rewrite a weak query, and answer with citations.
+
+## What it does
+
+Most "chat with documents" systems do one retrieve-then-answer pass and hope the retrieval was good. This one **inspects its own evidence and changes strategy when it's weak** — then it's measured on a real academic benchmark (MIRAGE), not just eyeballed.
+
+- **Grounded + cited** — every answer is built only from retrieved passages, each claim tagged to its source (`[statpearls: ...]`, `[textbook: ...]`).
+- **Refuses honestly** — out-of-scope questions return a fixed refusal instead of hallucinating; personal-symptom questions defer to a clinician.
+- **Self-correcting** — if the retrieved passages don't actually answer the question, the agent rewrites its query and retrieves again (hard-capped at 2 retries).
+
+## How it works
+
+```mermaid
+flowchart TD
+    S([START]) --> R["route<br/>detect intent"]
+    R --> T["retrieve<br/>top-20 → cross-encoder rerank → top-5"]
+    T --> G["grade_documents<br/>is the evidence sufficient?"]
+    G -- "insufficient · retries < 2" --> W["rewrite_query"]
+    W --> T
+    G -- "sufficient · or cap hit" --> A["generate<br/>grounded answer + citations"]
+    A --> GA["grade_answer<br/>grounded in passages?"]
+    GA --> E([END])
+```
+
+A real trace — *"I have chest pain right now, what should I do?"*:
 
 ```
-route → retrieve → grade docs → generate → check grounding → (repair & retry | grounded answer)
+1. Routed: medical question, retrieval needed
+2. Retrieved 5 passages
+3. Doc grade: NO — passages cover treatment/evaluation but don't address
+   immediate guidance for someone currently experiencing symptoms
+4. Rewrote query → "appropriate steps for acute chest pain + first-line
+   treatment for underlying conditions (MI, pneumonia)…"
+5. Retrieved 5 passages
+6. Doc grade: YES
+7. Generated → opens with "seek emergency care," then a cited summary
+8. Answer grounded: YES        [statpearls: Chest Pain — ACS] [InternalMed_Harrison]
+                                              10.2s · $0.003 · 1 retry
 ```
 
 A vanilla pipeline stops at step 3 with a weak answer. The agent notices *why* retrieval failed, repairs the query, and lands a grounded one — with the whole decision path visible.
